@@ -13,6 +13,14 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* Предотвращает появление полос прокрутки, если #app чуть больше экрана */
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -41,6 +49,8 @@ h1 {
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  height: 100%;
+  width: 100%;
 }
 
 .logo {
@@ -94,4 +104,10 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+
+#app {
+  height: 100%;
+  width: 100%;
 }

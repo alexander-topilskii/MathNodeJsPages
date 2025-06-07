@@ -16,6 +16,9 @@ export function setupRouter(): void {
   }
 
   router
+   .on('/', () => {
+      renderHomePage(appElement);
+    })
     .on('/MathNodeJsPages', () => {
       renderHomePage(appElement);
     })
@@ -26,7 +29,7 @@ export function setupRouter(): void {
       renderThreeSamplePage(appElement);
     })
     .notFound(() => { // Обработка случая, когда страница не найдена
-      appElement.innerHTML = '<h2>404 - Page Not Found</h2><a href="/" data-navigo>Go Home</a>';
+      appElement.innerHTML = '<h2>404 - Page Not Found</h2><a href="/MathNodeJsPages" data-navigo>Go Home</a>';
     })
     .resolve(); // Запускаем роутер для обработки текущего URL
 
