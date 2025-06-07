@@ -1,6 +1,7 @@
 // /src/main.ts
+import './styles/style.css'; // Импортируем глобальные стили
 import { displayVersionBanner } from './components/versionInfo';
-import { setupRouter } from './router/index';
+import { setupRouter } from './router';
 
 /**
  * Основная точка входа приложения.
