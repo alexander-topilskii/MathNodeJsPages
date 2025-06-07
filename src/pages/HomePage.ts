@@ -9,8 +9,8 @@ export function renderHomePage(appElement: HTMLElement): void {
       This is a simple example of using math in a web application. The math
       library is loaded dynamically.
     </p>
-    <a href="/counter" data-navigo>Go to Counter Page</a>
-    <a href="/three_cube" data-navigo>Cube Scene</a>
-    <a href="/three_sphere" data-navigo>Sphere Scene</a>
+   <div> <a href="/counter" data-navigo>Go to Counter Page</a></div> 
+   <div>  <a href="/three_cube" data-navigo>Cube Scene</a></div> 
+   <div>  <a href="/three_sphere" data-navigo>Sphere Scene</a></div> 
   `;
 }
