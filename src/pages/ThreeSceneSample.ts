@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-
+import { setupThreeScene } from '../utils/threeScene';
+import type { ThreeSceneInstance } from '../utils/threeScene';
 
 declare global {
   interface HTMLElement {
@@ -32,14 +33,8 @@ export function renderThreeSamplePage(appElement: HTMLElement): void {
     return;
   }
 
-  let animationFrameId: number | null = null;
-  let resizeObserver: ResizeObserver | null = null;
-  let stableOnResize: (() => void) | null = null; 
-
-  let sceneInstance: THREE.Scene | null = null;
-  let cameraInstance: THREE.PerspectiveCamera | null = null;
-  let rendererInstance: THREE.WebGLRenderer | null = null;
   let cubeInstance: THREE.Mesh | null = null;
+  let sceneController: ThreeSceneInstance | null = null;
 
 
   const initThreeScene = () => {
@@ -49,100 +44,31 @@ export function renderThreeSamplePage(appElement: HTMLElement): void {
       return;
     }
 
-    sceneInstance = new THREE.Scene();
-    
-   
-    cameraInstance = new THREE.PerspectiveCamera( 75, container.clientWidth / container.clientHeight, 0.1, 1000 );
-    rendererInstance = new THREE.WebGLRenderer({ antialias: true }); 
-    
-    rendererInstance.setSize( container.clientWidth, container.clientHeight );
-    rendererInstance.setPixelRatio(window.devicePixelRatio); 
-    
-    container.appendChild( rendererInstance.domElement );
-
-
-    const geometry = new THREE.BoxGeometry(1, 1, 1); 
-    const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    cubeInstance = new THREE.Mesh( geometry, material );
-    sceneInstance.add( cubeInstance );
-
-    cameraInstance.position.z = 5;
-
-   
-    stableOnResize = () => {
-      if (!container || !cameraInstance || !rendererInstance) return;
-      cameraInstance.aspect = container.clientWidth / container.clientHeight;
-      cameraInstance.updateProjectionMatrix();
-      rendererInstance.setSize(container.clientWidth, container.clientHeight);
-    };
-    
-    if (typeof ResizeObserver !== 'undefined') {
-        resizeObserver = new ResizeObserver(stableOnResize);
-        resizeObserver.observe(container);
-    } else {
-        window.addEventListener('resize', stableOnResize); // Запасной вариант
-    }
-
-    function animate() {
-      animationFrameId = requestAnimationFrame( animate );
-      if (cubeInstance && rendererInstance && sceneInstance && cameraInstance) {
-        cubeInstance.rotation.x += 0.01;
-        cubeInstance.rotation.y += 0.01;
-        rendererInstance.render( sceneInstance, cameraInstance );
-      }
-    }
-    animate();
-  };
-
-   appElement.cleanupThreeScene = () => {
-    console.log("Очистка сцены Three.js из appElement...");
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
-
-    if (resizeObserver) {
-      resizeObserver.disconnect();
-      resizeObserver = null;
-    } else if (stableOnResize) { 
-      window.removeEventListener('resize', stableOnResize);
-    }
-    stableOnResize = null;
-
-    if (rendererInstance) {
-        if (rendererInstance.domElement.parentElement) {
-            rendererInstance.domElement.parentElement.removeChild(rendererInstance.domElement);
+    sceneController = setupThreeScene(container, {
+      onInit: (scene, camera) => {
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        cubeInstance = new THREE.Mesh(geometry, material);
+        scene.add(cubeInstance);
+        camera.position.z = 5;
+      },
+      onAnimationFrame: () => {
+        if (cubeInstance) {
+          cubeInstance.rotation.x += 0.01;
+          cubeInstance.rotation.y += 0.01;
         }
-        rendererInstance.dispose();
-        rendererInstance = null;
-    }
-    
-    if (sceneInstance) {
-        sceneInstance.traverse(object => {
-            if (object instanceof THREE.Mesh) { 
-                if (object.geometry) {
-                    object.geometry.dispose();
-                }
-                if (object.material) {
-                    if (Array.isArray(object.material)) {
-                        object.material.forEach(mat => mat.dispose());
-                    } else {
-                        object.material.dispose();
-                    }
-                }
-            }
-        });
-        sceneInstance = null; 
-    }
+      },
+    });
 
-    cameraInstance = null;
-    cubeInstance = null; 
-
-    if (container) {
-        container.innerHTML = "";
-    }
-    console.log("Очистка сцены Three.js завершена.");
+    appElement.cleanupThreeScene = () => {
+      console.log("Очистка сцены Three.js из appElement...");
+      sceneController?.cleanup();
+      cubeInstance = null;
+      sceneController = null;
+      console.log("Очистка сцены Three.js завершена.");
+    };
   };
+
 
   if (typeof THREE !== 'undefined') {
     console.log("Three.js уже загружен.");
