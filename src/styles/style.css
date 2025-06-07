@@ -78,10 +78,8 @@ body {
   padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden;
-  overflow: hidden; /* CAUTION: Prevents all scrolling on the page.
-                             Remove or scope to a specific element if scrolling is needed
-                             for content that might exceed viewport. */
+  /* Allow scrolling when content exceeds viewport */
+  overflow: auto;
 }
 
 a {
@@ -219,14 +217,18 @@ button:focus-visible {
 #header {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 0.25rem 1rem;
+}
+#page-title {
+  margin: 0;
 }
 #version-info-banner {
   margin-right: 1rem;
 }
 #app-layout {
   display: flex;
-  height: calc(100vh - 50px);
+  flex: 1 1 auto;
+  width: 100%;
 }
 #sidebar {
   width: 200px;
