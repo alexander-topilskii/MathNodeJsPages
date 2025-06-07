@@ -24,8 +24,12 @@ export function setupThreeScene(container: HTMLElement, handlers: SceneLifecycle
   const camera = new THREE.PerspectiveCamera(75, initWidth / initHeight, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
 
-  renderer.setSize(initWidth, initHeight);
+  // Configure pixel ratio before setting the render size and avoid
+  // overwriting the canvas style width/height. Updating style here causes the
+  // container's width to grow exponentially on each resize because the measured
+  // width then includes the device pixel ratio multiplier.
   renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(initWidth, initHeight, false);
   container.appendChild(renderer.domElement);
 
   handlers.onInit?.(scene, camera, renderer);
@@ -34,7 +38,9 @@ export function setupThreeScene(container: HTMLElement, handlers: SceneLifecycle
     const { width, height } = getDimensions();
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
+    // Pass `false` to avoid altering the canvas's CSS width/height which is
+    // controlled via stylesheet.
+    renderer.setSize(width, height, false);
   };
 
   let resizeObserver: ResizeObserver | null = null;
