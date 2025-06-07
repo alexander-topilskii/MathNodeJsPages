@@ -10,6 +10,7 @@ export function renderHomePage(appElement: HTMLElement): void {
       library is loaded dynamically.
     </p>
     <a href="/counter" data-navigo>Go to Counter Page</a>
-    <a href="/three_sample" data-navigo>Go to Three sample page Page</a>
+    <a href="/three_cube" data-navigo>Cube Scene</a>
+    <a href="/three_sphere" data-navigo>Sphere Scene</a>
   `;
 }
