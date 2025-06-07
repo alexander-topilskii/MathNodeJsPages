@@ -5,10 +5,10 @@ import { renderCubeScene, renderSphereScene } from '../pages/ThreeScenes';
 const router = new Navigo('/'); // '/' это корневой URL
 
 export function setupRouter(): void {
-  const appElement = document.getElementById('app');
+  const appElement = document.getElementById('content');
 
   if (!appElement) {
-    console.error('App element (#app) not found in the DOM.');
+    console.error('App element (#content) not found in the DOM.');
     return;
   }
 

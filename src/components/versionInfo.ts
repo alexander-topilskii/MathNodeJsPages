@@ -5,8 +5,9 @@
  * Информация извлекается из переменных окружения Vite (VITE_COMMIT_HASH, VITE_COMMIT_DATE).
  */
 export function displayVersionBanner(): void {
-  const versionElement = document.createElement('div');
-  versionElement.id = 'version-info-banner'; // Дадим новый ID или можно оставить старый
+  const existing = document.getElementById('version-info-banner');
+  const versionElement = existing ?? document.createElement('div');
+  versionElement.id = 'version-info-banner';
 
   // Применяем стили программно
   Object.assign(versionElement.style, {
@@ -43,13 +44,13 @@ export function displayVersionBanner(): void {
     }
   }
 
-  // Добавляем элемент в начало body
-  if (document.body) {
-    document.body.prepend(versionElement);
-  } else {
-    // Если body еще не доступно, дождемся загрузки DOM
-    document.addEventListener('DOMContentLoaded', () => {
+  if (!existing) {
+    if (document.body) {
       document.body.prepend(versionElement);
-    });
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        document.body.prepend(versionElement);
+      });
+    }
   }
 }

@@ -11,8 +11,6 @@ export function renderCounterPage(appElement: HTMLElement): void {
     </div>
     <button id="increment-btn">Increment</button>
     <button id="decrement-btn" style="margin-left: 5px;">Decrement</button>
-    <br><br>
-    <a href="/" data-navigo>Go to Home</a>
   `;
 
   let count = 0;
