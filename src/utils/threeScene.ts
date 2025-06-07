@@ -14,19 +14,27 @@ export interface ThreeSceneInstance {
 
 export function setupThreeScene(container: HTMLElement, handlers: SceneLifecycleHandlers = {}): ThreeSceneInstance {
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+  const getDimensions = () => {
+    const rect = container.getBoundingClientRect();
+    const width = rect.width || container.clientWidth || container.parentElement?.clientWidth || window.innerWidth;
+    const height = rect.height || container.clientHeight || container.parentElement?.clientHeight || window.innerHeight;
+    return { width, height };
+  };
+  const { width: initWidth, height: initHeight } = getDimensions();
+  const camera = new THREE.PerspectiveCamera(75, initWidth / initHeight, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
 
-  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setSize(initWidth, initHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   container.appendChild(renderer.domElement);
 
   handlers.onInit?.(scene, camera, renderer);
 
   const onResize = () => {
-    camera.aspect = container.clientWidth / container.clientHeight;
+    const { width, height } = getDimensions();
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(width, height);
   };
 
   let resizeObserver: ResizeObserver | null = null;

@@ -9,10 +9,6 @@ export interface SceneManager {
 
 export function createThreeApp(appElement: HTMLElement, setupCallback: (manager: SceneManager) => void): void {
   appElement.innerHTML = `
-    <style>
-      #three-container { width: 100%; height: 100%; display: block; }
-      #three-container canvas { display: block; width: 100%; height: 100%; }
-    </style>
     <div id="three-container"></div>
   `;
 
@@ -22,6 +18,16 @@ export function createThreeApp(appElement: HTMLElement, setupCallback: (manager:
     appElement.innerHTML = '<p>Ошибка: Не удалось инициализировать 3D-представление. Контейнер отсутствует.</p>';
     return;
   }
+
+  // Ensure the container is visible before initializing Three.js
+  container.style.width = '100%';
+  container.style.height = '100%';
+  container.style.display = 'block';
+
+  // Also make sure any canvas added by Three.js fills the container
+  const style = document.createElement('style');
+  style.textContent = `#three-container canvas { display: block; width: 100%; height: 100%; }`;
+  appElement.appendChild(style);
 
   const objects: THREE.Object3D[] = [];
   let updateFn: (() => void) | null = null;
