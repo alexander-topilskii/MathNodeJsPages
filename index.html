@@ -7,7 +7,21 @@
     <title>Hello math</title>
   </head>
   <body>
-    <div id="app">Loading...</div> 
+    <div id="header">
+      <div id="version-info-banner"></div>
+      <h1 id="page-title">Hello math</h1>
+    </div>
+    <div id="app-layout">
+      <nav id="sidebar">
+        <ul>
+          <li><a href="/" data-navigo>Home</a></li>
+          <li><a href="/counter" data-navigo>Counter</a></li>
+          <li><a href="/three_cube" data-navigo>Cube Scene</a></li>
+          <li><a href="/three_sphere" data-navigo>Sphere Scene</a></li>
+        </ul>
+      </nav>
+      <div id="content">Loading...</div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
