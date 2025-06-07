@@ -7,7 +7,7 @@
 ## ✨ Демонстрация
 
 Посмотреть живую демонстрацию проекта можно здесь:
-**[https://<alexander-topilskii>.github.io/<MathNodeJsPages>/](https://<alexander-topilskii>.github.io/<MathNodeJsPages>/)**
+**[https://alexander-topilskii.github.io/MathNodeJsPages/](https://alexander-topilskii.github.io/MathNodeJsPages/)**
 
 
 ## 🚀 Особенности
