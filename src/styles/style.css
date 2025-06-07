@@ -100,7 +100,7 @@ body {
   margin: 0;
   /* margin: 0; /* This was redundant, already set in html, body */
   display: flex;
-  place-items: center;
+  place-items: start;
   flex-direction: column; 
   flex-direction: column;
   min-width: 320px;
@@ -123,7 +123,7 @@ h1 {
   margin: 0 auto;
   padding: 2rem;
   padding: var(--padding-container);
-  text-align: center;
+  text-align: start;
   height: 100%;
   width: 100%;
   box-sizing: border-box; /* Good practice for elements with padding and width: 100% */
