@@ -1,6 +1,6 @@
 # MathNodeJsPages - Интерактивные математические визуализации
 
-[![Состояние сборки](https://github.com/<alexander-topilskii>/<MathNodeJsPages>/actions/workflows/main.yml/badge.svg)](https://github.com/<alexander-topilskii>/<MathNodeJsPages>/actions)
+[![Состояние сборки](https://github.com/alexander-topilskii/MathNodeJsPages/actions/workflows/main.yml/badge.svg)](https://github.com/alexander-topilskii/MathNodeJsPages/actions)
 
 Добро пожаловать в MathNodeJsPages! Этот проект представляет собой коллекцию интерактивных веб-страниц, демонстрирующих различные математические концепции и 3D-визуализации с использованием Three.js. Проект создан с использованием Vite, TypeScript и Navigo для маршрутизации.
 
@@ -32,7 +32,7 @@
 
 1.  **Клонируйте репозиторий:**
     ```bash
-    git clone https://github.com/<alexander-topilskii>/<MathNodeJsPages>.git
+    git clone https://github.com/alexander-topilskii/MathNodeJsPages.git
     cd <MathNodeJsPages>
     ```
 
