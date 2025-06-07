@@ -237,4 +237,5 @@ button:focus-visible {
   flex-grow: 1;
   padding: 1rem;
   overflow: auto;
+  height: 100%;
 }
