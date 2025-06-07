@@ -13,7 +13,17 @@ export function setupRouter(): void {
   }
 
   router
-   .on('/', () => {
+    .hooks({
+      before: (done) => {
+        const el = appElement as HTMLElement & { cleanupThreeScene?: () => void };
+        if (typeof el.cleanupThreeScene === 'function') {
+          el.cleanupThreeScene();
+          delete el.cleanupThreeScene;
+        }
+        done();
+      },
+    })
+    .on('/', () => {
       renderHomePage(appElement);
     })
     .on('/MathNodeJsPages', () => {
