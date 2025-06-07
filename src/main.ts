@@ -1,15 +1,16 @@
-import './styles/style.css';
-import { setupApp, setupCounter } from './counter.ts'
-import { displayVersionBanner } from './versionInfo.ts';
+// /src/main.ts
+import { displayVersionBanner } from './components/versionInfo';
+import { setupRouter } from './router/index';
 
 /**
  * Основная точка входа приложения.
  */
 function main() {
-  setupApp(document.querySelector<HTMLDivElement>('#app')!)
-  setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
-
+  // Отображаем баннер с информацией о версии
   displayVersionBanner();
+  // Настраиваем и запускаем роутер
+  setupRouter();
+  console.log('Application started with router.');
 }
 
 // Запускаем основную функцию после загрузки DOM
