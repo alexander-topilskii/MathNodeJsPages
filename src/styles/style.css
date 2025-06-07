@@ -229,6 +229,7 @@ button:focus-visible {
   display: flex;
   flex: 1 1 auto;
   width: 100%;
+  height: calc(100vh - 50px);
 }
 #sidebar {
   width: 200px;
