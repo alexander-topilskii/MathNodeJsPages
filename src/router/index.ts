@@ -1,7 +1,7 @@
 import Navigo from 'navigo';
 import { renderHomePage } from '../pages/HomePage';
 import { renderCounterPage } from '../pages/CounterPage';
-
+import { renderThreeSamplePage } from '../pages/ThreeSceneSample';
 const router = new Navigo('/'); // '/' это корневой URL
 
 /**
@@ -16,11 +16,14 @@ export function setupRouter(): void {
   }
 
   router
-    .on('/', () => {
+    .on('/MathNodeJsPages', () => {
       renderHomePage(appElement);
     })
     .on('/counter', () => {
       renderCounterPage(appElement);
+    })
+    .on('/three_sample', () => {
+      renderThreeSamplePage(appElement);
     })
     .notFound(() => { // Обработка случая, когда страница не найдена
       appElement.innerHTML = '<h2>404 - Page Not Found</h2><a href="/" data-navigo>Go Home</a>';
