@@ -234,7 +234,9 @@ button:focus-visible {
   box-sizing: border-box;
 }
 #content {
-  flex-grow: 1;
+  /* Ensure the main content area expands to fill the remaining space */
+  flex: 1 1 auto;
+  width: 100%;
   padding: 1rem;
   overflow: auto;
   height: 100%;
