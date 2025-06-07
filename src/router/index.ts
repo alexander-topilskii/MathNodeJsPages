@@ -4,9 +4,6 @@ import { renderCounterPage } from '../pages/CounterPage';
 import { renderThreeSamplePage } from '../pages/ThreeSceneSample';
 const router = new Navigo('/'); // '/' это корневой URL
 
-/**
- * Настраивает и инициализирует роутер.
- */
 export function setupRouter(): void {
   const appElement = document.getElementById('app');
 
@@ -31,7 +28,5 @@ export function setupRouter(): void {
     .notFound(() => { // Обработка случая, когда страница не найдена
       appElement.innerHTML = '<h2>404 - Page Not Found</h2><a href="/MathNodeJsPages" data-navigo>Go Home</a>';
     })
-    .resolve(); // Запускаем роутер для обработки текущего URL
-
-  // Navigo автоматически обрабатывает клики по ссылкам с атрибутом data-navigo
+    .resolve(); 
 }

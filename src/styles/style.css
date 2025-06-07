@@ -1,11 +1,54 @@
+/* ==========================================================================
+   1. CSS Variables & Theming
+   ========================================================================== */
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  /* Color Palette - Default (Dark Theme) */
+  --text-color: rgba(255, 255, 255, 0.87);
+  --bg-color: #242424;
+  --link-color: #646cff;
+  --link-hover-color: #535bf2;
+  --button-bg-color: #1a1a1a;
+  --button-border-hover-color: var(--link-color);
+  --logo-shadow-color: #646cffaa;
+  --logo-vanilla-shadow-color: #3178c6aa;
+  --muted-text-color: #888;
+  --focus-ring-color: -webkit-focus-ring-color; /* For consistency if needed elsewhere */
+
+  /* Typography */
+  --font-family-sans: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --line-height-base: 1.5;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-size-h1: 3.2em;
+  --line-height-h1: 1.1;
+  --font-size-button: 1em;
+
+  /* Sizing & Spacing */
+  --border-radius-medium: 8px;
+  --padding-button-vertical: 0.6em;
+  --padding-button-horizontal: 1.2em;
+  --padding-logo: 1.5em;
+  --padding-container: 2rem; /* For #app */
+  --padding-card: 2em;
+
+  /* Transitions */
+  --transition-duration-fast: 0.25s;
+  --transition-duration-medium: 300ms;
+
+  /* Base settings */
+  font-family: var(--font-family-sans);
+  line-height: var(--line-height-base);
+  font-weight: var(--font-weight-normal);
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
+  color: var(--text-color);
+  background-color: var(--bg-color);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -14,27 +57,52 @@
 }
 
 html, body {
+@media (prefers-color-scheme: light) {
+  :root {
+    --text-color: #213547;
+    --bg-color: #ffffff;
+    --link-hover-color: #747bff;
+    --button-bg-color: #f9f9f9;
+    
+  }
+}
+}
+
+/* ==========================================================================
+   2. Global Resets & Base Element Styling
+   ========================================================================== */
+
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden; /* Предотвращает появление полос прокрутки, если #app чуть больше экрана */
+  overflow: hidden;
+  overflow: hidden; /* CAUTION: Prevents all scrolling on the page.
+                             Remove or scope to a specific element if scrolling is needed
+                             for content that might exceed viewport. */
 }
 
 a {
   font-weight: 500;
   color: #646cff;
+  font-weight: var(--font-weight-medium);
+  color: var(--link-color);
   text-decoration: inherit;
 }
 a:hover {
   color: #535bf2;
+  color: var(--link-hover-color);
 }
 
 body {
   margin: 0;
+  /* margin: 0; /* This was redundant, already set in html, body */
   display: flex;
   place-items: center;
   flex-direction: column; 
+  flex-direction: column;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -42,55 +110,84 @@ body {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-h1);
 }
+
+/* ==========================================================================
+   3. Layout Containers
+   ========================================================================== */
 
 #app {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
+  padding: var(--padding-container);
   text-align: center;
   height: 100%;
   width: 100%;
+  box-sizing: border-box; /* Good practice for elements with padding and width: 100% */
 }
 
+/* ==========================================================================
+   4. Components
+   ========================================================================== */
+
+/* Logo Component */
 .logo {
   height: 6em;
   padding: 1.5em;
+  padding: var(--padding-logo);
   will-change: filter;
   transition: filter 300ms;
+  transition: filter var(--transition-duration-medium);
 }
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em var(--logo-shadow-color));
 }
 .logo.vanilla:hover {
   filter: drop-shadow(0 0 2em #3178c6aa);
+  filter: drop-shadow(0 0 2em var(--logo-vanilla-shadow-color));
 }
 
+/* Card Component */
 .card {
   padding: 2em;
+  padding: var(--padding-card);
 }
 
 .read-the-docs {
   color: #888;
 }
 
+/* Button Component */
 button {
   border-radius: 8px;
+  border-radius: var(--border-radius-medium);
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
+  padding: var(--padding-button-vertical) var(--padding-button-horizontal);
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   font-family: inherit;
   background-color: #1a1a1a;
+  background-color: var(--button-bg-color);
+  color: var(--text-color); /* Ensure button text color matches theme */
   cursor: pointer;
   transition: border-color 0.25s;
+  transition: border-color var(--transition-duration-fast);
 }
 button:hover {
   border-color: #646cff;
+  border-color: var(--button-border-hover-color);
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+  outline: 4px auto var(--focus-ring-color);
 }
 
 @media (prefers-color-scheme: light) {
@@ -105,9 +202,15 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+/* ==========================================================================
+   5. Utility Classes
+   ========================================================================== */
 
 
 #app {
   height: 100%;
   width: 100%;
+}
+.read-the-docs {
+  color: var(--muted-text-color);
 }
