@@ -1,4 +1,4 @@
-import './style.css'
+import './styles/style.css';
 import { setupApp, setupCounter } from './counter.ts'
 import { displayVersionBanner } from './versionInfo.ts';
 
