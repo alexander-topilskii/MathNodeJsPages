@@ -1,220 +1,140 @@
-import * as THREE from 'three';
-import { setupThreeScene } from '../utils/threeScene';
+import * as d3 from 'd3';
 import { addFullscreenToggle } from '../utils/fullscreenToggle';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 /**
- * Render a 3D plot of z = sin(sqrt(x^2 + y^2)) with axes and tooltips.
+ * Render an interactive plot of z = sin(sqrt(x^2 + y^2)) using D3.
  * @param appElement - HTML element to render the scene into.
  */
 export function renderFunctionPlotScene(appElement: HTMLElement): void {
   appElement.innerHTML = `
-    <div id="three-container" style="width:100%;height:100%;position:relative;">
+    <div id="d3-container" style="width:100%;height:100%;position:relative;">
       <button id="reset-view" style="position:absolute;left:8px;top:8px;z-index:11;">↺</button>
-      <button id="rotate-world" style="position:absolute;left:40px;top:8px;z-index:11;">🌐</button>
-      <button id="rotate-object" style="position:absolute;left:72px;top:8px;z-index:11;">🎯</button>
-      <div id="control-hint" style="position:absolute;bottom:8px;left:8px;z-index:11;background:rgba(0,0,0,0.5);color:#fff;padding:2px 6px;border-radius:4px;font-size:12px;">Drag to rotate, scroll to zoom, R to reset</div>
+      <div id="tooltip" style="position:absolute;pointer-events:none;background:rgba(0,0,0,0.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;display:none;"></div>
     </div>
-    <div id="tooltip" style="position:absolute;pointer-events:none;background:rgba(0,0,0,0.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;display:none;"></div>
   `;
 
-  const container = appElement.querySelector<HTMLDivElement>('#three-container')!;
+  const container = appElement.querySelector<HTMLDivElement>('#d3-container')!;
   container.style.maxWidth = '100%';
   container.style.maxHeight = '100%';
   container.style.overflow = 'hidden';
   addFullscreenToggle(container);
-  const resetBtn = appElement.querySelector<HTMLButtonElement>('#reset-view')!;
-  const rotateWorldBtn = appElement.querySelector<HTMLButtonElement>('#rotate-world')!;
-  const rotateObjectBtn = appElement.querySelector<HTMLButtonElement>('#rotate-object')!;
-  const tooltip = appElement.querySelector<HTMLDivElement>('#tooltip')!;
 
-  const raycaster = new THREE.Raycaster();
-  const pointer = new THREE.Vector2();
-  let points: THREE.Points;
-  let labelRenderer: CSS2DRenderer;
-  let controls: OrbitControls;
-  let selectedObject: THREE.Object3D | null = null;
+  const resetBtn = container.querySelector<HTMLButtonElement>('#reset-view')!;
+  const tooltip = container.querySelector<HTMLDivElement>('#tooltip')!;
 
-  const defaultColor = 0xff8800;
-  const highlightColor = 0xffff00;
+  const margin = { top: 20, right: 20, bottom: 40, left: 40 };
+  let width = container.clientWidth - margin.left - margin.right;
+  let height = container.clientHeight - margin.top - margin.bottom;
 
-  const resizeObservers: ResizeObserver[] = [];
+  const svg = d3
+    .select(container)
+    .append('svg')
+    .style('display', 'block')
+    .attr('width', container.clientWidth)
+    .attr('height', container.clientHeight);
 
-  const sceneInstance = setupThreeScene(container, {
-    onInit: (scene, camera) => {
-      labelRenderer = new CSS2DRenderer();
-      labelRenderer.domElement.style.position = 'absolute';
-      labelRenderer.domElement.style.top = '0';
-      labelRenderer.setSize(container.clientWidth, container.clientHeight);
-      container.appendChild(labelRenderer.domElement);
+  const plotArea = svg
+    .append('g')
+    .attr('transform', `translate(${margin.left},${margin.top})`);
 
-      controls = new OrbitControls(camera, labelRenderer.domElement);
-      controls.enableDamping = true;
-      controls.target.set(0, 0, 0);
-      camera.position.set(20, 20, 20);
-      camera.lookAt(0, 0, 0);
-      controls.update();
-      controls.saveState();
+  const size = 40;
+  const range = 20;
+  const data: { x: number; y: number; z: number }[] = [];
 
-      scene.add(new THREE.AmbientLight(0x404040));
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      dirLight.position.set(10, 10, 10);
-      scene.add(dirLight);
+  for (let i = 0; i < size; i++) {
+    const x = (i / (size - 1)) * range - range / 2;
+    for (let j = 0; j < size; j++) {
+      const y = (j / (size - 1)) * range - range / 2;
+      const r = Math.sqrt(x * x + y * y);
+      const z = Math.sin(r);
+      data.push({ x, y, z });
+    }
+  }
 
-      const axesLength = 15;
-      const axes = [
-        { dir: new THREE.Vector3(1, 0, 0), color: 0xff0000, label: 'X' },
-        { dir: new THREE.Vector3(0, 1, 0), color: 0x00ff00, label: 'Y' },
-        { dir: new THREE.Vector3(0, 0, 1), color: 0x0000ff, label: 'Z' },
-      ];
-      for (const { dir, color, label } of axes) {
-        const pts = [new THREE.Vector3(0, 0, 0), dir.clone().multiplyScalar(axesLength)];
-        const geom = new THREE.BufferGeometry().setFromPoints(pts);
-        const mat = new THREE.LineBasicMaterial({ color });
-        const line = new THREE.Line(geom, mat);
-        scene.add(line);
+  const xScale = d3
+    .scaleLinear()
+    .domain([-range / 2, range / 2])
+    .range([0, width]);
 
-        const div = document.createElement('div');
-        div.textContent = label;
-        div.style.color = '#fff';
-        const obj = new CSS2DObject(div);
-        obj.position.copy(pts[1]);
-        scene.add(obj);
-      }
+  const yScale = d3
+    .scaleLinear()
+    .domain([-range / 2, range / 2])
+    .range([height, 0]);
 
-      const pointGeometry = new THREE.BufferGeometry();
-      const positions: number[] = [];
-      const size = 50;
-      const range = 20;
-      for (let i = 0; i < size; i++) {
-        const x = (i / (size - 1)) * range - range / 2;
-        for (let j = 0; j < size; j++) {
-          const y = (j / (size - 1)) * range - range / 2;
-          const r = Math.sqrt(x * x + y * y);
-          const z = Math.sin(r);
-          positions.push(x, y, z);
-        }
-      }
-      pointGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      const pointMaterial = new THREE.PointsMaterial({ color: 0xff8800, size: 0.2 });
-      points = new THREE.Points(pointGeometry, pointMaterial);
-      scene.add(points);
+  const colorScale = d3.scaleSequential(d3.interpolateTurbo).domain([-1, 1]);
 
-      const observer = new ResizeObserver(() => {
-        labelRenderer.setSize(container.clientWidth, container.clientHeight);
-      });
-      observer.observe(container);
-      resizeObservers.push(observer);
-    },
-    onAnimationFrame: (scene, camera) => {
-      controls.update();
-      labelRenderer.render(scene, camera);
-    },
-  });
+  const xAxisGroup = plotArea
+    .append('g')
+    .attr('class', 'x-axis')
+    .attr('transform', `translate(0,${height})`)
+    .call(d3.axisBottom(xScale));
 
-  function onPointerMove(event: PointerEvent): void {
-    const rect = container.getBoundingClientRect();
-    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.setFromCamera(pointer, sceneInstance.camera);
-    const intersects = raycaster.intersectObject(points);
-    if (intersects.length > 0) {
-      const p = intersects[0].point;
+  const yAxisGroup = plotArea
+    .append('g')
+    .attr('class', 'y-axis')
+    .call(d3.axisLeft(yScale));
+
+  const points = plotArea
+    .selectAll<SVGCircleElement, typeof data[number]>('circle')
+    .data(data)
+    .enter()
+    .append('circle')
+    .attr('cx', d => xScale(d.x))
+    .attr('cy', d => yScale(d.y))
+    .attr('r', 3)
+    .attr('fill', d => colorScale(d.z));
+
+  points
+    .on('pointerover', (event: PointerEvent, d: typeof data[number]) => {
       tooltip.style.display = 'block';
+      tooltip.textContent = `X: ${d.x.toFixed(2)}, Y: ${d.y.toFixed(2)}, Z: ${d.z.toFixed(2)}`;
       tooltip.style.left = `${event.clientX + 5}px`;
       tooltip.style.top = `${event.clientY + 5}px`;
-      tooltip.textContent = `X: ${p.x.toFixed(2)}, Y: ${p.y.toFixed(2)}, Z: ${p.z.toFixed(2)}`;
-    } else {
+    })
+    .on('pointermove', (event: PointerEvent) => {
+      tooltip.style.left = `${event.clientX + 5}px`;
+      tooltip.style.top = `${event.clientY + 5}px`;
+    })
+    .on('pointerout', () => {
       tooltip.style.display = 'none';
-    }
+    });
+
+  const zoomBehavior = d3
+    .zoom<SVGSVGElement, unknown>()
+    .scaleExtent([0.5, 10])
+    .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+      const transform = event.transform;
+      const zx = transform.rescaleX(xScale);
+      const zy = transform.rescaleY(yScale);
+      xAxisGroup.call(d3.axisBottom(zx));
+      yAxisGroup.call(d3.axisLeft(zy));
+      points.attr('cx', d => zx(d.x)).attr('cy', d => zy(d.y));
+    });
+
+  svg.call(zoomBehavior as any);
+
+  function resetView(): void {
+    svg.transition().duration(750).call(zoomBehavior.transform, d3.zoomIdentity);
   }
 
-  function onPointerDown(event: PointerEvent): void {
+  resetBtn.addEventListener('click', resetView);
+
+  const resizeObserver = new ResizeObserver(() => {
     const rect = container.getBoundingClientRect();
-    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.setFromCamera(pointer, sceneInstance.camera);
-    const intersects = raycaster.intersectObject(points);
-    if (intersects.length > 0) {
-      // simple highlight for selected point cloud
-      if (selectedObject) {
-        const mat = (selectedObject as THREE.Points).material as THREE.PointsMaterial;
-        mat.color.set(defaultColor);
-      }
-      selectedObject = points;
-      ((points.material as THREE.PointsMaterial).color).set(highlightColor);
-    }
-  }
-
-  function resetCamera() {
-    controls.reset();
-  }
-
-  let autoRotateMode: 'world' | 'object' | null = null;
-
-  function stopRotation() {
-    controls.autoRotate = false;
-    autoRotateMode = null;
-  }
-
-  function startWorldRotation() {
-    controls.target.set(0, 0, 0);
-    controls.autoRotate = true;
-    autoRotateMode = 'world';
-  }
-
-  function startObjectRotation() {
-    if (!selectedObject) return;
-    controls.target.copy(selectedObject.position);
-    controls.autoRotate = true;
-    autoRotateMode = 'object';
-  }
-
-  function toggleWorldRotation() {
-    if (autoRotateMode === 'world') {
-      stopRotation();
-    } else {
-      startWorldRotation();
-    }
-  }
-
-  function toggleObjectRotation() {
-    if (!selectedObject) return;
-    if (autoRotateMode === 'object') {
-      stopRotation();
-    } else {
-      startObjectRotation();
-    }
-  }
-
-  container.addEventListener('pointermove', onPointerMove);
-  container.addEventListener('pointerdown', onPointerDown);
-  const onContextMenu = (e: Event) => e.preventDefault();
-  container.addEventListener('contextmenu', onContextMenu);
-  resetBtn.addEventListener('click', resetCamera);
-  rotateWorldBtn.addEventListener('click', toggleWorldRotation);
-  rotateObjectBtn.addEventListener('click', toggleObjectRotation);
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'r' || e.key === 'R') {
-      resetCamera();
-    }
-  };
-  window.addEventListener('keydown', onKeyDown);
+    svg.attr('width', rect.width).attr('height', rect.height);
+    width = rect.width - margin.left - margin.right;
+    height = rect.height - margin.top - margin.bottom;
+    xScale.range([0, width]);
+    yScale.range([height, 0]);
+    xAxisGroup.attr('transform', `translate(0,${height})`).call(d3.axisBottom(xScale));
+    yAxisGroup.call(d3.axisLeft(yScale));
+    points.attr('cx', d => xScale(d.x)).attr('cy', d => yScale(d.y));
+  });
+  resizeObserver.observe(container);
 
   (appElement as HTMLElement & { cleanupThreeScene?: () => void }).cleanupThreeScene = () => {
-    container.removeEventListener('pointermove', onPointerMove);
-    container.removeEventListener('pointerdown', onPointerDown);
-    container.removeEventListener('contextmenu', onContextMenu);
-    resetBtn.removeEventListener('click', resetCamera);
-    rotateWorldBtn.removeEventListener('click', toggleWorldRotation);
-    rotateObjectBtn.removeEventListener('click', toggleObjectRotation);
-    window.removeEventListener('keydown', onKeyDown);
-    resizeObservers.forEach(o => o.disconnect());
-    if (selectedObject) {
-      const mat = (selectedObject as THREE.Points).material as THREE.PointsMaterial;
-      mat.color.set(defaultColor);
-    }
-    sceneInstance.cleanup();
+    resetBtn.removeEventListener('click', resetView);
+    resizeObserver.disconnect();
+    svg.remove();
   };
 }
