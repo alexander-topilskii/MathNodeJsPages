@@ -56,16 +56,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-html, body {
 @media (prefers-color-scheme: light) {
   :root {
     --text-color: #213547;
     --bg-color: #ffffff;
     --link-hover-color: #747bff;
     --button-bg-color: #f9f9f9;
-    
   }
-}
 }
 
 /* ==========================================================================
