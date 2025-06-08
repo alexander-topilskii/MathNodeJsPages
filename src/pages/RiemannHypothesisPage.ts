@@ -9,6 +9,7 @@ export function renderRiemannHypothesisScene(appElement: HTMLElement): void {
   appElement.innerHTML = `
     <div id="d3-container" style="width:100%;height:100%;position:relative;">
       <button id="reset-view" style="position:absolute;left:8px;top:8px;z-index:11;">↺</button>
+      <div id="tooltip" style="position:absolute;pointer-events:none;background:rgba(0,0,0,0.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;display:none;"></div>
     </div>
   `;
 
@@ -19,6 +20,7 @@ export function renderRiemannHypothesisScene(appElement: HTMLElement): void {
   addFullscreenToggle(container);
 
   const resetBtn = container.querySelector<HTMLButtonElement>('#reset-view')!;
+  const tooltip = container.querySelector<HTMLDivElement>('#tooltip')!;
   const margin = { top: 20, right: 20, bottom: 20, left: 40 };
   let width = container.clientWidth - margin.left - margin.right;
   let height = container.clientHeight - margin.top - margin.bottom;
@@ -64,16 +66,41 @@ export function renderRiemannHypothesisScene(appElement: HTMLElement): void {
     .attr('r', 4)
     .attr('fill', '#ff0000');
 
+  let currentTransform = d3.zoomIdentity;
+
   const zoomBehavior = d3
     .zoom<SVGSVGElement, unknown>()
     .scaleExtent([0.5, 10])
     .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
       const zy = event.transform.rescaleY(yScale);
+      currentTransform = event.transform;
       yAxisGroup.call(d3.axisLeft(zy));
       circles.attr('cy', d => zy(d));
     });
 
   svg.call(zoomBehavior as any);
+
+  function showTooltip(event: PointerEvent): void {
+    const [, py] = d3.pointer(event, plotArea.node() as SVGGElement);
+    const zy = currentTransform.rescaleY(yScale);
+    const value = zy.invert(py);
+    let nearest = zeros[0];
+    for (const z of zeros) {
+      if (Math.abs(z - value) < Math.abs(nearest - value)) {
+        nearest = z;
+      }
+    }
+    tooltip.textContent = `0.5 + ${nearest.toFixed(6)}i`;
+    tooltip.style.display = 'block';
+    tooltip.style.left = `${event.clientX + 5}px`;
+    tooltip.style.top = `${event.clientY + 5}px`;
+  }
+
+  function hideTooltip(): void {
+    tooltip.style.display = 'none';
+  }
+
+  svg.on('pointermove', showTooltip).on('pointerleave', hideTooltip);
 
   function resetView(): void {
     svg.transition().duration(750).call(zoomBehavior.transform, d3.zoomIdentity);
