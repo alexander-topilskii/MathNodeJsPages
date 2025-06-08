@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { setupThreeScene } from '../utils/threeScene';
 import { addFullscreenToggle } from '../utils/fullscreenToggle';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 /**
@@ -12,7 +12,7 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
   appElement.innerHTML = `
     <div id="three-container" style="width:100%;height:100%;position:relative;">
       <button id="reset-view" style="position:absolute;left:8px;top:8px;z-index:11;">↺</button>
-      <div id="control-hint" style="position:absolute;bottom:8px;left:8px;z-index:11;background:rgba(0,0,0,0.5);color:#fff;padding:2px 6px;border-radius:4px;font-size:12px;">Mouse: rotate/zoom/pan, R to reset</div>
+      <div id="control-hint" style="position:absolute;bottom:8px;left:8px;z-index:11;background:rgba(0,0,0,0.5);color:#fff;padding:2px 6px;border-radius:4px;font-size:12px;">Drag to rotate, scroll to zoom, R to reset</div>
     </div>
     <div id="tooltip" style="position:absolute;pointer-events:none;background:rgba(0,0,0,0.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;display:none;"></div>
   `;
@@ -29,7 +29,7 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
   const pointer = new THREE.Vector2();
   let points: THREE.Points;
   let labelRenderer: CSS2DRenderer;
-  let controls: OrbitControls;
+  let controls: ArcballControls;
 
   const resizeObservers: ResizeObserver[] = [];
 
@@ -41,14 +41,11 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
       labelRenderer.setSize(container.clientWidth, container.clientHeight);
       container.appendChild(labelRenderer.domElement);
 
-      controls = new OrbitControls(camera, labelRenderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.1;
-      controls.listenToKeyEvents(window);
-      controls.zoomSpeed = 0.8;
-      controls.panSpeed = 0.5;
+      controls = new ArcballControls(camera, labelRenderer.domElement, scene);
+      controls.setGizmosVisible(false);
       camera.position.set(20, 20, 20);
       controls.update();
+      controls.saveState();
 
       scene.add(new THREE.AmbientLight(0x404040));
       const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -124,9 +121,7 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
   }
 
   function resetCamera() {
-    sceneInstance.camera.position.set(20, 20, 20);
-    controls.target.set(0, 0, 0);
-    controls.update();
+    controls.reset();
   }
 
   container.addEventListener('pointermove', onPointerMove);
