@@ -2,6 +2,7 @@ import Navigo from 'navigo';
 import { renderHomePage } from '../pages/HomePage';
 import { renderCounterPage } from '../pages/CounterPage';
 import { renderCubeScene, renderSphereScene } from '../pages/ThreeScenes';
+import { renderFunctionPlotScene } from '../pages/FunctionPlotPage';
 import { renderRiemannHypothesisScene } from '../pages/RiemannHypothesisPage';
 const router = new Navigo('/'); // '/' это корневой URL
 
@@ -38,6 +39,9 @@ export function setupRouter(): void {
     })
     .on('/three_sphere', () => {
       renderSphereScene(appElement);
+    })
+    .on('/function_plot', () => {
+      renderFunctionPlotScene(appElement);
     })
     .on('/riemann', () => {
       renderRiemannHypothesisScene(appElement);
