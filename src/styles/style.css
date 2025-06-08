@@ -244,3 +244,4 @@ button:focus-visible {
   overflow: auto;
   height: 100%;
 }
+.fullscreen-toggle{padding:4px 8px;font-size:14px;}

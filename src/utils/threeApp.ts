@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { setupThreeScene } from './threeScene';
 import type { ThreeSceneInstance } from './threeScene';
+import { addFullscreenToggle } from './fullscreenToggle';
 
 export interface SceneManager {
   addObject(object: THREE.Object3D): void;
@@ -22,12 +23,17 @@ export function createThreeApp(appElement: HTMLElement, setupCallback: (manager:
   // Ensure the container is visible before initializing Three.js
   container.style.width = '100%';
   container.style.height = '100%';
+  container.style.maxWidth = '100%';
+  container.style.maxHeight = '100%';
+  container.style.overflow = 'hidden';
   container.style.display = 'block';
 
   // Also make sure any canvas added by Three.js fills the container
   const style = document.createElement('style');
   style.textContent = `#three-container canvas { display: block; width: 100%; height: 100%; }`;
   appElement.appendChild(style);
+
+  addFullscreenToggle(container);
 
   const objects: THREE.Object3D[] = [];
   let updateFn: (() => void) | null = null;
