@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { setupThreeScene } from '../utils/threeScene';
 import { addFullscreenToggle } from '../utils/fullscreenToggle';
-import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 /**
@@ -29,7 +29,7 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
   const pointer = new THREE.Vector2();
   let points: THREE.Points;
   let labelRenderer: CSS2DRenderer;
-  let controls: ArcballControls;
+  let controls: OrbitControls;
 
   const resizeObservers: ResizeObserver[] = [];
 
@@ -41,9 +41,11 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
       labelRenderer.setSize(container.clientWidth, container.clientHeight);
       container.appendChild(labelRenderer.domElement);
 
-      controls = new ArcballControls(camera, labelRenderer.domElement, scene);
-      controls.setGizmosVisible(false);
+      controls = new OrbitControls(camera, labelRenderer.domElement);
+      controls.enableDamping = true;
+      controls.target.set(0, 0, 0);
       camera.position.set(20, 20, 20);
+      camera.lookAt(0, 0, 0);
       controls.update();
       controls.saveState();
 
