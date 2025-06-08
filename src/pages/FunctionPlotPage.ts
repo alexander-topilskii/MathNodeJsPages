@@ -1,8 +1,13 @@
 import * as d3 from 'd3';
 import { addFullscreenToggle } from '../utils/fullscreenToggle';
+import { create, all } from 'mathjs';
+import type { Complex } from 'mathjs';
+
+const math = create(all, {});
 
 /**
- * Render an interactive plot of z = sin(sqrt(x^2 + y^2)) using D3.
+ * Render an interactive plot of f(z) = sin(z) on the complex plane using D3.
+ * Each point represents z = x + yi and is colored by |f(z)|.
  * @param appElement - HTML element to render the scene into.
  */
 export function renderFunctionPlotScene(appElement: HTMLElement): void {
@@ -39,15 +44,17 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
 
   const size = 40;
   const range = 20;
-  const data: { x: number; y: number; z: number }[] = [];
+  const data: { x: number; y: number; re: number; im: number; mag: number }[] = [];
 
   for (let i = 0; i < size; i++) {
     const x = (i / (size - 1)) * range - range / 2;
     for (let j = 0; j < size; j++) {
       const y = (j / (size - 1)) * range - range / 2;
-      const r = Math.sqrt(x * x + y * y);
-      const z = Math.sin(r);
-      data.push({ x, y, z });
+      const z: Complex = math.sin(math.complex(x, y));
+      const re = z.re as unknown as number;
+      const im = z.im as unknown as number;
+      const mag = math.abs(z) as unknown as number;
+      data.push({ x, y, re, im, mag });
     }
   }
 
@@ -61,7 +68,9 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
     .domain([-range / 2, range / 2])
     .range([height, 0]);
 
-  const colorScale = d3.scaleSequential(d3.interpolateTurbo).domain([-1, 1]);
+  const colorScale = d3
+    .scaleSequential(d3.interpolateTurbo)
+    .domain(d3.extent(data, d => Math.log10(d.mag)) as [number, number]);
 
   const xAxisGroup = plotArea
     .append('g')
@@ -82,12 +91,15 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
     .attr('cx', d => xScale(d.x))
     .attr('cy', d => yScale(d.y))
     .attr('r', 3)
-    .attr('fill', d => colorScale(d.z));
+    .attr('fill', d => colorScale(Math.log10(d.mag)));
 
   points
     .on('pointerover', (event: PointerEvent, d: typeof data[number]) => {
       tooltip.style.display = 'block';
-      tooltip.textContent = `X: ${d.x.toFixed(2)}, Y: ${d.y.toFixed(2)}, Z: ${d.z.toFixed(2)}`;
+      tooltip.textContent =
+        `z = ${d.x.toFixed(2)} + ${d.y.toFixed(2)}i\n` +
+        `sin(z) = ${d.re.toFixed(2)} + ${d.im.toFixed(2)}i\n` +
+        `|sin(z)| = ${d.mag.toExponential(2)}`;
       tooltip.style.left = `${event.clientX + 5}px`;
       tooltip.style.top = `${event.clientY + 5}px`;
     })
