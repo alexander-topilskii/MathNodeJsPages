@@ -12,6 +12,8 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
   appElement.innerHTML = `
     <div id="three-container" style="width:100%;height:100%;position:relative;">
       <button id="reset-view" style="position:absolute;left:8px;top:8px;z-index:11;">↺</button>
+      <button id="rotate-world" style="position:absolute;left:40px;top:8px;z-index:11;">🌐</button>
+      <button id="rotate-object" style="position:absolute;left:72px;top:8px;z-index:11;">🎯</button>
       <div id="control-hint" style="position:absolute;bottom:8px;left:8px;z-index:11;background:rgba(0,0,0,0.5);color:#fff;padding:2px 6px;border-radius:4px;font-size:12px;">Drag to rotate, scroll to zoom, R to reset</div>
     </div>
     <div id="tooltip" style="position:absolute;pointer-events:none;background:rgba(0,0,0,0.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;display:none;"></div>
@@ -23,6 +25,8 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
   container.style.overflow = 'hidden';
   addFullscreenToggle(container);
   const resetBtn = appElement.querySelector<HTMLButtonElement>('#reset-view')!;
+  const rotateWorldBtn = appElement.querySelector<HTMLButtonElement>('#rotate-world')!;
+  const rotateObjectBtn = appElement.querySelector<HTMLButtonElement>('#rotate-object')!;
   const tooltip = appElement.querySelector<HTMLDivElement>('#tooltip')!;
 
   const raycaster = new THREE.Raycaster();
@@ -30,6 +34,10 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
   let points: THREE.Points;
   let labelRenderer: CSS2DRenderer;
   let controls: OrbitControls;
+  let selectedObject: THREE.Object3D | null = null;
+
+  const defaultColor = 0xff8800;
+  const highlightColor = 0xffff00;
 
   const resizeObservers: ResizeObserver[] = [];
 
@@ -122,14 +130,71 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
     }
   }
 
+  function onPointerDown(event: PointerEvent): void {
+    const rect = container.getBoundingClientRect();
+    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, sceneInstance.camera);
+    const intersects = raycaster.intersectObject(points);
+    if (intersects.length > 0) {
+      // simple highlight for selected point cloud
+      if (selectedObject) {
+        const mat = (selectedObject as THREE.Points).material as THREE.PointsMaterial;
+        mat.color.set(defaultColor);
+      }
+      selectedObject = points;
+      ((points.material as THREE.PointsMaterial).color).set(highlightColor);
+    }
+  }
+
   function resetCamera() {
     controls.reset();
   }
 
+  let autoRotateMode: 'world' | 'object' | null = null;
+
+  function stopRotation() {
+    controls.autoRotate = false;
+    autoRotateMode = null;
+  }
+
+  function startWorldRotation() {
+    controls.target.set(0, 0, 0);
+    controls.autoRotate = true;
+    autoRotateMode = 'world';
+  }
+
+  function startObjectRotation() {
+    if (!selectedObject) return;
+    controls.target.copy(selectedObject.position);
+    controls.autoRotate = true;
+    autoRotateMode = 'object';
+  }
+
+  function toggleWorldRotation() {
+    if (autoRotateMode === 'world') {
+      stopRotation();
+    } else {
+      startWorldRotation();
+    }
+  }
+
+  function toggleObjectRotation() {
+    if (!selectedObject) return;
+    if (autoRotateMode === 'object') {
+      stopRotation();
+    } else {
+      startObjectRotation();
+    }
+  }
+
   container.addEventListener('pointermove', onPointerMove);
+  container.addEventListener('pointerdown', onPointerDown);
   const onContextMenu = (e: Event) => e.preventDefault();
   container.addEventListener('contextmenu', onContextMenu);
   resetBtn.addEventListener('click', resetCamera);
+  rotateWorldBtn.addEventListener('click', toggleWorldRotation);
+  rotateObjectBtn.addEventListener('click', toggleObjectRotation);
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'r' || e.key === 'R') {
       resetCamera();
@@ -139,10 +204,17 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
 
   (appElement as HTMLElement & { cleanupThreeScene?: () => void }).cleanupThreeScene = () => {
     container.removeEventListener('pointermove', onPointerMove);
+    container.removeEventListener('pointerdown', onPointerDown);
     container.removeEventListener('contextmenu', onContextMenu);
     resetBtn.removeEventListener('click', resetCamera);
+    rotateWorldBtn.removeEventListener('click', toggleWorldRotation);
+    rotateObjectBtn.removeEventListener('click', toggleObjectRotation);
     window.removeEventListener('keydown', onKeyDown);
     resizeObservers.forEach(o => o.disconnect());
+    if (selectedObject) {
+      const mat = (selectedObject as THREE.Points).material as THREE.PointsMaterial;
+      mat.color.set(defaultColor);
+    }
     sceneInstance.cleanup();
   };
 }
