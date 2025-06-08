@@ -9,17 +9,6 @@ export function displayVersionBanner(): void {
   const versionElement = existing ?? document.createElement('div');
   versionElement.id = 'version-info-banner';
 
-  // Применяем стили программно
-  Object.assign(versionElement.style, {
-    padding: '5px 10px',
-    backgroundColor: '#f8f9fa',
-    borderBottom: '1px solid #dee2e6',
-    fontSize: '12px',
-    color: '#6c757d',
-    textAlign: 'center',
-    fontFamily: 'sans-serif', // Добавим шрифт для консистентности
-  });
-
   const commitHash: string | undefined = import.meta.env.VITE_COMMIT_HASH;
   const commitDateStr: string | undefined = import.meta.env.VITE_COMMIT_DATE;
 
