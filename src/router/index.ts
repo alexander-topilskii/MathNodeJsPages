@@ -4,6 +4,7 @@ import { renderCounterPage } from '../pages/CounterPage';
 import { renderCubeScene, renderSphereScene } from '../pages/ThreeScenes';
 import { renderFunctionPlotScene } from '../pages/FunctionPlotPage';
 import { renderRiemannHypothesisScene } from '../pages/RiemannHypothesisPage';
+import { renderFormulaGraphPage } from '../pages/FormulaGraphPage';
 const router = new Navigo('/'); // '/' это корневой URL
 
 export function setupRouter(): void {
@@ -42,6 +43,9 @@ export function setupRouter(): void {
     })
     .on('/function_plot', () => {
       renderFunctionPlotScene(appElement);
+    })
+    .on('/formula_graph', () => {
+      renderFormulaGraphPage(appElement);
     })
     .on('/riemann', () => {
       renderRiemannHypothesisScene(appElement);
