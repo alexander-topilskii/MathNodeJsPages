@@ -96,7 +96,6 @@ a:hover {
 
 body {
   margin: 0;
-  /* margin: 0; /* This was redundant, already set in html, body */
   display: flex;
   place-items: start;
   flex-direction: column; 
@@ -164,7 +163,7 @@ button {
   border-radius: 8px;
   border-radius: var(--border-radius-medium);
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
+  padding: 0.6em 0.8em;
   font-size: 1em;
   font-weight: 500;
   padding: var(--padding-button-vertical) var(--padding-button-horizontal);
@@ -217,7 +216,7 @@ button:focus-visible {
 #header {
   display: flex;
   align-items: center;
-  padding: 0.25rem 1rem;
+  padding: 0.25rem 0.25rem;
 }
 #page-title {
   margin: 0;
@@ -242,14 +241,14 @@ button:focus-visible {
 }
 #sidebar {
   width: 200px;
-  padding: 1rem;
+  padding: 0.1rem;
   box-sizing: border-box;
 }
 #content {
   /* Ensure the main content area expands to fill the remaining space */
   flex: 1 1 auto;
   width: 100%;
-  padding: 1rem;
+  padding: 0.1rem;
   overflow: auto;
   height: 100%;
 }
