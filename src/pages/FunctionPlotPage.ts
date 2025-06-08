@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { setupThreeScene } from '../utils/threeScene';
+import { addFullscreenToggle } from '../utils/fullscreenToggle';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
@@ -14,6 +15,10 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
   `;
 
   const container = appElement.querySelector<HTMLDivElement>('#three-container')!;
+  container.style.maxWidth = '100%';
+  container.style.maxHeight = '100%';
+  container.style.overflow = 'hidden';
+  addFullscreenToggle(container);
   const tooltip = appElement.querySelector<HTMLDivElement>('#tooltip')!;
 
   const raycaster = new THREE.Raycaster();
