@@ -1,5 +1,8 @@
 import * as d3 from 'd3';
 import { addFullscreenToggle } from '../utils/fullscreenToggle';
+import { create, all } from 'mathjs';
+
+const math = create(all, {});
 
 /**
  * Render a simple D3 visualization highlighting the non-trivial zeros
@@ -39,59 +42,92 @@ export function renderRiemannHypothesisScene(appElement: HTMLElement): void {
     37.586178, 40.918719, 43.327073, 48.00515, 49.773832,
   ];
 
-  const yScale = d3
-    .scaleLinear()
-    .domain([0, d3.max(zeros)! * 1.1])
-    .range([height, 0]);
+  const xRange = [-5, 2];
+  const yRange = [-30, 30];
+  const xSteps = 40;
+  const ySteps = 60;
 
-  const xPos = width / 2;
-  const yAxisGroup = plotArea.append('g').attr('class', 'y-axis').call(d3.axisLeft(yScale));
+  const data: { x: number; y: number; value: number }[] = [];
+  for (let i = 0; i < xSteps; i++) {
+    const x = xRange[0] + (i / (xSteps - 1)) * (xRange[1] - xRange[0]);
+    for (let j = 0; j < ySteps; j++) {
+      const y = yRange[0] + (j / (ySteps - 1)) * (yRange[1] - yRange[0]);
+      const z = math.zeta(math.complex(x, y));
+      const value = math.abs(z) as unknown as number;
+      data.push({ x, y, value });
+    }
+  }
 
-  const axisLine = plotArea
-    .append('line')
-    .attr('x1', xPos)
-    .attr('x2', xPos)
-    .attr('y1', 0)
-    .attr('y2', height)
-    .attr('stroke', '#00ff00')
-    .attr('stroke-width', 2);
+  const xScale = d3.scaleLinear().domain(xRange).range([0, width]);
+  const yScale = d3.scaleLinear().domain(yRange).range([height, 0]);
 
-  const circles = plotArea
-    .selectAll<SVGCircleElement, number>('circle')
+  const colorScale = d3
+    .scaleSequential(d3.interpolatePlasma)
+    .domain(d3.extent(data, d => Math.log10(d.value)) as [number, number]);
+
+  const xAxisGroup = plotArea
+    .append('g')
+    .attr('class', 'x-axis')
+    .attr('transform', `translate(0,${height})`)
+    .call(d3.axisBottom(xScale));
+
+  const yAxisGroup = plotArea
+    .append('g')
+    .attr('class', 'y-axis')
+    .call(d3.axisLeft(yScale));
+
+  const cellWidth = width / xSteps;
+  const cellHeight = height / ySteps;
+
+  const cells = plotArea
+    .selectAll<SVGRectElement, typeof data[number]>('rect')
+    .data(data)
+    .enter()
+    .append('rect')
+    .attr('x', d => xScale(d.x) - cellWidth / 2)
+    .attr('y', d => yScale(d.y) - cellHeight / 2)
+    .attr('width', cellWidth)
+    .attr('height', cellHeight)
+    .attr('fill', d => colorScale(Math.log10(d.value)));
+
+  const zeroPoints = plotArea
+    .selectAll<SVGCircleElement, number>('circle.zero')
     .data(zeros)
     .enter()
     .append('circle')
-    .attr('cx', xPos)
+    .attr('class', 'zero')
+    .attr('cx', xScale(0.5))
     .attr('cy', d => yScale(d))
-    .attr('r', 4)
+    .attr('r', 3)
     .attr('fill', '#ff0000');
 
-  let currentTransform = d3.zoomIdentity;
+  const pole = plotArea
+    .append('circle')
+    .attr('cx', xScale(1))
+    .attr('cy', yScale(0))
+    .attr('r', 5)
+    .attr('fill', 'orange');
 
   const zoomBehavior = d3
     .zoom<SVGSVGElement, unknown>()
     .scaleExtent([0.5, 10])
     .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+      const zx = event.transform.rescaleX(xScale);
       const zy = event.transform.rescaleY(yScale);
-      currentTransform = event.transform;
+      xAxisGroup.call(d3.axisBottom(zx));
       yAxisGroup.call(d3.axisLeft(zy));
-      circles.attr('cy', d => zy(d));
+      cells
+        .attr('x', d => zx(d.x) - cellWidth / 2)
+        .attr('y', d => zy(d.y) - cellHeight / 2);
+      zeroPoints.attr('cx', zx(0.5)).attr('cy', d => zy(d));
+      pole.attr('cx', zx(1)).attr('cy', zy(0));
     });
 
   svg.call(zoomBehavior as any);
 
-  function showTooltip(event: PointerEvent): void {
-    const [, py] = d3.pointer(event, plotArea.node() as SVGGElement);
-    const zy = currentTransform.rescaleY(yScale);
-    const value = zy.invert(py);
-    let nearest = zeros[0];
-    for (const z of zeros) {
-      if (Math.abs(z - value) < Math.abs(nearest - value)) {
-        nearest = z;
-      }
-    }
-    tooltip.textContent = `0.5 + ${nearest.toFixed(6)}i`;
+  function showTooltip(event: PointerEvent, d: typeof data[number]): void {
     tooltip.style.display = 'block';
+    tooltip.textContent = `s = ${d.x.toFixed(2)} + ${d.y.toFixed(2)}i, |ζ| = ${d.value.toExponential(2)}`;
     const rect = container.getBoundingClientRect();
     tooltip.style.left = `${event.clientX - rect.left + 5}px`;
     tooltip.style.top = `${event.clientY - rect.top + 5}px`;
@@ -101,7 +137,10 @@ export function renderRiemannHypothesisScene(appElement: HTMLElement): void {
     tooltip.style.display = 'none';
   }
 
-  svg.on('pointermove', showTooltip).on('pointerleave', hideTooltip);
+  cells
+    .on('pointerover', showTooltip)
+    .on('pointermove', showTooltip)
+    .on('pointerout', hideTooltip);
 
   function resetView(): void {
     svg.transition().duration(750).call(zoomBehavior.transform, d3.zoomIdentity);
@@ -114,15 +153,19 @@ export function renderRiemannHypothesisScene(appElement: HTMLElement): void {
     svg.attr('width', rect.width).attr('height', rect.height);
     width = rect.width - margin.left - margin.right;
     height = rect.height - margin.top - margin.bottom;
+    xScale.range([0, width]);
     yScale.range([height, 0]);
+    xAxisGroup.attr('transform', `translate(0,${height})`).call(d3.axisBottom(xScale));
     yAxisGroup.call(d3.axisLeft(yScale));
-    axisLine
-      .attr('x1', width / 2)
-      .attr('x2', width / 2)
-      .attr('y2', height);
-    circles
-      .attr('cx', width / 2)
-      .attr('cy', d => yScale(d));
+    const w = width / xSteps;
+    const h = height / ySteps;
+    cells
+      .attr('x', d => xScale(d.x) - w / 2)
+      .attr('y', d => yScale(d.y) - h / 2)
+      .attr('width', w)
+      .attr('height', h);
+    zeroPoints.attr('cx', xScale(0.5)).attr('cy', d => yScale(d));
+    pole.attr('cx', xScale(1)).attr('cy', yScale(0));
   });
   resizeObserver.observe(container);
 
