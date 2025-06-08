@@ -92,8 +92,9 @@ export function renderRiemannHypothesisScene(appElement: HTMLElement): void {
     }
     tooltip.textContent = `0.5 + ${nearest.toFixed(6)}i`;
     tooltip.style.display = 'block';
-    tooltip.style.left = `${event.clientX + 5}px`;
-    tooltip.style.top = `${event.clientY + 5}px`;
+    const rect = container.getBoundingClientRect();
+    tooltip.style.left = `${event.clientX - rect.left + 5}px`;
+    tooltip.style.top = `${event.clientY - rect.top + 5}px`;
   }
 
   function hideTooltip(): void {
