@@ -1,41 +1,106 @@
-import * as THREE from 'three';
-import { createThreeApp } from '../utils/threeApp';
+import * as d3 from 'd3';
+import { addFullscreenToggle } from '../utils/fullscreenToggle';
 
 /**
- * Render a simple Three.js visualization highlighting the non-trivial zeros
- * of the Riemann zeta function along the critical line. Each zero is
- * represented by a small sphere on a vertical axis.
+ * Render a simple D3 visualization highlighting the non-trivial zeros
+ * of the Riemann zeta function along the critical line.
  */
 export function renderRiemannHypothesisScene(appElement: HTMLElement): void {
-  createThreeApp(appElement, (sceneManager) => {
-    // First several non-trivial zeros of the zeta function
-    const zeros = [
-      14.134725, 21.022040, 25.010858, 30.424876, 32.935062,
-      37.586178, 40.918719, 43.327073, 48.005150, 49.773832,
-    ];
-    const scale = 0.05; // scale factor for visualizing the zeros
+  appElement.innerHTML = `
+    <div id="d3-container" style="width:100%;height:100%;position:relative;">
+      <button id="reset-view" style="position:absolute;left:8px;top:8px;z-index:11;">↺</button>
+    </div>
+  `;
 
-    const group = new THREE.Group();
+  const container = appElement.querySelector<HTMLDivElement>('#d3-container')!;
+  container.style.maxWidth = '100%';
+  container.style.maxHeight = '100%';
+  container.style.overflow = 'hidden';
+  addFullscreenToggle(container);
 
-    const zeroMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    for (const t of zeros) {
-      const geometry = new THREE.SphereGeometry(0.1, 16, 16);
-      const sphere = new THREE.Mesh(geometry, zeroMaterial);
-      sphere.position.set(0, t * scale, 0);
-      group.add(sphere);
-    }
+  const resetBtn = container.querySelector<HTMLButtonElement>('#reset-view')!;
+  const margin = { top: 20, right: 20, bottom: 20, left: 40 };
+  let width = container.clientWidth - margin.left - margin.right;
+  let height = container.clientHeight - margin.top - margin.bottom;
 
-    const axisHeight = zeros[zeros.length - 1] * scale + 1;
-    const axisGeometry = new THREE.CylinderGeometry(0.02, 0.02, axisHeight, 32);
-    const axisMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    const axis = new THREE.Mesh(axisGeometry, axisMaterial);
-    axis.position.set(0, axisHeight / 2, 0);
-    group.add(axis);
+  const svg = d3
+    .select(container)
+    .append('svg')
+    .style('display', 'block')
+    .attr('width', container.clientWidth)
+    .attr('height', container.clientHeight);
 
-    sceneManager.addObject(group);
+  const plotArea = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
-    sceneManager.setOnUpdate(() => {
-      group.rotation.y += 0.01;
+  const zeros = [
+    14.134725, 21.02204, 25.010858, 30.424876, 32.935062,
+    37.586178, 40.918719, 43.327073, 48.00515, 49.773832,
+  ];
+
+  const yScale = d3
+    .scaleLinear()
+    .domain([0, d3.max(zeros)! * 1.1])
+    .range([height, 0]);
+
+  const xPos = width / 2;
+  const yAxisGroup = plotArea.append('g').attr('class', 'y-axis').call(d3.axisLeft(yScale));
+
+  const axisLine = plotArea
+    .append('line')
+    .attr('x1', xPos)
+    .attr('x2', xPos)
+    .attr('y1', 0)
+    .attr('y2', height)
+    .attr('stroke', '#00ff00')
+    .attr('stroke-width', 2);
+
+  const circles = plotArea
+    .selectAll<SVGCircleElement, number>('circle')
+    .data(zeros)
+    .enter()
+    .append('circle')
+    .attr('cx', xPos)
+    .attr('cy', d => yScale(d))
+    .attr('r', 4)
+    .attr('fill', '#ff0000');
+
+  const zoomBehavior = d3
+    .zoom<SVGSVGElement, unknown>()
+    .scaleExtent([0.5, 10])
+    .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+      const zy = event.transform.rescaleY(yScale);
+      yAxisGroup.call(d3.axisLeft(zy));
+      circles.attr('cy', d => zy(d));
     });
+
+  svg.call(zoomBehavior as any);
+
+  function resetView(): void {
+    svg.transition().duration(750).call(zoomBehavior.transform, d3.zoomIdentity);
+  }
+
+  resetBtn.addEventListener('click', resetView);
+
+  const resizeObserver = new ResizeObserver(() => {
+    const rect = container.getBoundingClientRect();
+    svg.attr('width', rect.width).attr('height', rect.height);
+    width = rect.width - margin.left - margin.right;
+    height = rect.height - margin.top - margin.bottom;
+    yScale.range([height, 0]);
+    yAxisGroup.call(d3.axisLeft(yScale));
+    axisLine
+      .attr('x1', width / 2)
+      .attr('x2', width / 2)
+      .attr('y2', height);
+    circles
+      .attr('cx', width / 2)
+      .attr('cy', d => yScale(d));
   });
+  resizeObserver.observe(container);
+
+  (appElement as HTMLElement & { cleanupThreeScene?: () => void }).cleanupThreeScene = () => {
+    resetBtn.removeEventListener('click', resetView);
+    resizeObserver.disconnect();
+    svg.remove();
+  };
 }
