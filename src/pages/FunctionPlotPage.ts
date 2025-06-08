@@ -10,7 +10,10 @@ import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRe
  */
 export function renderFunctionPlotScene(appElement: HTMLElement): void {
   appElement.innerHTML = `
-    <div id="three-container" style="width:100%;height:100%;position:relative;"></div>
+    <div id="three-container" style="width:100%;height:100%;position:relative;">
+      <button id="reset-view" style="position:absolute;left:8px;top:8px;z-index:11;">↺</button>
+      <div id="control-hint" style="position:absolute;bottom:8px;left:8px;z-index:11;background:rgba(0,0,0,0.5);color:#fff;padding:2px 6px;border-radius:4px;font-size:12px;">Mouse: rotate/zoom/pan, R to reset</div>
+    </div>
     <div id="tooltip" style="position:absolute;pointer-events:none;background:rgba(0,0,0,0.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;display:none;"></div>
   `;
 
@@ -19,6 +22,7 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
   container.style.maxHeight = '100%';
   container.style.overflow = 'hidden';
   addFullscreenToggle(container);
+  const resetBtn = appElement.querySelector<HTMLButtonElement>('#reset-view')!;
   const tooltip = appElement.querySelector<HTMLDivElement>('#tooltip')!;
 
   const raycaster = new THREE.Raycaster();
@@ -38,6 +42,11 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
       container.appendChild(labelRenderer.domElement);
 
       controls = new OrbitControls(camera, labelRenderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.1;
+      controls.listenToKeyEvents(window);
+      controls.zoomSpeed = 0.8;
+      controls.panSpeed = 0.5;
       camera.position.set(20, 20, 20);
       controls.update();
 
@@ -114,10 +123,28 @@ export function renderFunctionPlotScene(appElement: HTMLElement): void {
     }
   }
 
+  function resetCamera() {
+    sceneInstance.camera.position.set(20, 20, 20);
+    controls.target.set(0, 0, 0);
+    controls.update();
+  }
+
   container.addEventListener('pointermove', onPointerMove);
+  const onContextMenu = (e: Event) => e.preventDefault();
+  container.addEventListener('contextmenu', onContextMenu);
+  resetBtn.addEventListener('click', resetCamera);
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'r' || e.key === 'R') {
+      resetCamera();
+    }
+  };
+  window.addEventListener('keydown', onKeyDown);
 
   (appElement as HTMLElement & { cleanupThreeScene?: () => void }).cleanupThreeScene = () => {
     container.removeEventListener('pointermove', onPointerMove);
+    container.removeEventListener('contextmenu', onContextMenu);
+    resetBtn.removeEventListener('click', resetCamera);
+    window.removeEventListener('keydown', onKeyDown);
     resizeObservers.forEach(o => o.disconnect());
     sceneInstance.cleanup();
   };
