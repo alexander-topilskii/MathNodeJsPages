@@ -8,7 +8,7 @@ const math = create(all, {});
  * Render a simple D3 visualization highlighting the non-trivial zeros
  * of the Riemann zeta function along the critical line.
  */
-export function renderRiemannHypothesisScene(appElement: HTMLElement): void {
+export function renderRiemannZerosScene(appElement: HTMLElement): void {
   appElement.innerHTML = `
     <div id="d3-container" style="width:100%;height:100%;position:relative;">
       <button id="reset-view" style="position:absolute;left:8px;top:8px;z-index:11;">↺</button>

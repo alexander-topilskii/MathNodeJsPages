@@ -1,10 +1,10 @@
 import Navigo from 'navigo';
-import { renderHomePage } from '../pages/HomePage';
-import { renderCounterPage } from '../pages/CounterPage';
-import { renderCubeScene, renderSphereScene } from '../pages/ThreeScenes';
-import { renderFunctionPlotScene } from '../pages/FunctionPlotPage';
-import { renderRiemannHypothesisScene } from '../pages/RiemannHypothesisPage';
-import { renderFormulaGraphPage } from '../pages/FormulaGraphPage';
+import { renderHomePage } from '../pages/Home';
+import { renderCounterPage } from '../pages/Counter';
+import { renderCubeScene, renderSphereScene } from '../pages/ThreeExamples';
+import { renderComplexPlot } from '../pages/ComplexPlot';
+import { renderRiemannZerosScene } from '../pages/RiemannZeros';
+import { renderFormulaPlot } from '../pages/FormulaPlot';
 const router = new Navigo('/'); // '/' это корневой URL
 
 export function setupRouter(): void {
@@ -42,13 +42,13 @@ export function setupRouter(): void {
       renderSphereScene(appElement);
     })
     .on('/function_plot', () => {
-      renderFunctionPlotScene(appElement);
+      renderComplexPlot(appElement);
     })
     .on('/formula_graph', () => {
-      renderFormulaGraphPage(appElement);
+      renderFormulaPlot(appElement);
     })
     .on('/riemann', () => {
-      renderRiemannHypothesisScene(appElement);
+      renderRiemannZerosScene(appElement);
     })
     .notFound(() => { // Обработка случая, когда страница не найдена
       appElement.innerHTML = '<h2>404 - Page Not Found</h2><a href="/MathNodeJsPages" data-navigo>Go Home</a>';

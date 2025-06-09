@@ -6,7 +6,7 @@ import { createPlot } from './functionPlot/plot';
  * Render an interactive plot of f(z) = sin(z) on the complex plane using D3.
  * @param appElement - HTML element to render the scene into.
  */
-export function renderFunctionPlotScene(appElement: HTMLElement): void {
+export function renderComplexPlot(appElement: HTMLElement): void {
   appElement.innerHTML = `
     <div id="d3-container" style="width:100%;height:100%;position:relative;">
       <button id="reset-view" style="position:absolute;left:8px;top:8px;z-index:11;">↺</button>
