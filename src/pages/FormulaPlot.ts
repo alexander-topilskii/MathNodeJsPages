@@ -58,8 +58,24 @@ export function renderFormulaPlot(appElement: HTMLElement): void {
     const domainStart = parseFloat(startInput.value);
     const domainEnd = parseFloat(endInput.value);
     let data;
+    let imagStart: number | undefined;
+    let imagEnd: number | undefined;
+    if (imagCheckbox.checked) {
+      const imStart = parseFloat(imagStartInput.value);
+      const imEnd = parseFloat(imagEndInput.value);
+      if (!Number.isNaN(imStart) && !Number.isNaN(imEnd)) {
+        imagStart = imStart;
+        imagEnd = imEnd;
+      }
+    }
     try {
-      data = computeFormula(formulaField.value || '', domainStart, domainEnd);
+      data = computeFormula(
+        formulaField.value || '',
+        domainStart,
+        domainEnd,
+        imagStart,
+        imagEnd,
+      );
     } catch {
       return;
     }
@@ -68,12 +84,8 @@ export function renderFormulaPlot(appElement: HTMLElement): void {
       ...data.realPoints.map(p => p.y),
       ...data.imagPoints.map(p => p.y),
     ];
-    if (imagCheckbox.checked) {
-      const imStart = parseFloat(imagStartInput.value);
-      const imEnd = parseFloat(imagEndInput.value);
-      if (!Number.isNaN(imStart) && !Number.isNaN(imEnd)) {
-        yValues.push(imStart, imEnd);
-      }
+    if (typeof imagStart === 'number' && typeof imagEnd === 'number') {
+      yValues.push(imagStart, imagEnd);
     }
 
     threePlot.draw(data.realPositions, data.imagPositions, realCheckbox.checked, imagCheckbox.checked);
