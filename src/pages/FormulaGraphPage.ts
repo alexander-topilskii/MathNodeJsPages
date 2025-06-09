@@ -59,7 +59,10 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
 
   const { scene, cleanup } = sceneInstance;
   const realMaterial = new THREE.LineBasicMaterial({ color: 0x4682b4 });
-  const imagMaterial = new THREE.LineDashedMaterial({ color: 0xff6347, dashSize: 0.2, gapSize: 0.1 });
+  // Imaginary component is drawn using a solid line to better visualize
+  // functions like sin(x) where the imaginary part is non‑zero. Dashed lines
+  // made the curve appear discontinuous.
+  const imagMaterial = new THREE.LineBasicMaterial({ color: 0xff6347 });
   let realLine = new THREE.Line(new THREE.BufferGeometry(), realMaterial);
   let imagLine = new THREE.Line(new THREE.BufferGeometry(), imagMaterial);
   scene.add(realLine);
