@@ -26,8 +26,10 @@ export function renderFormulaPlot(appElement: HTMLElement): void {
       <label><input type="checkbox" id="show-real" checked> Real part</label>
       <label style="margin-left:4px;"><input type="checkbox" id="show-imag" checked> Imag part</label>
     </div>
-    <div id="three-container" style="width:100%;height:400px;position:relative;"></div>
-    <div id="d3-container" style="width:100%;height:300px;position:relative;margin-top:8px;"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <div id="three-container" style="width:300px;height:300px;position:relative;"></div>
+      <div id="d3-container" style="width:300px;height:300px;position:relative;"></div>
+    </div>
   `;
 
   const formulaField = appElement.querySelector('math-field#formula-input') as HTMLElement & { value: string };
