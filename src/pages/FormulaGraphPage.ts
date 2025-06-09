@@ -18,18 +18,18 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
     <div style="margin-bottom:8px;">
       <label>Formula: <math-field id="formula-input">\\sin(x)</math-field></label>
     </div>
-    <div style="margin-bottom:8px;">
+    <div id="real-range" style="margin-bottom:8px;">
       <label>Domain start: <input id="domain-start" type="number" value="0" step="any"></label>
       <label style="margin-left:4px;">Domain end: <input id="domain-end" type="number" value="6.28" step="any"></label>
       <button id="plot-btn" style="margin-left:4px;">Plot</button>
     </div>
-    <div style="margin-bottom:8px;">
-      <label><input type="checkbox" id="show-real" checked> Real part</label>
-      <label style="margin-left:4px;"><input type="checkbox" id="show-imag"> Imag part</label>
-    </div>
     <div id="imag-range" style="display:none;margin-bottom:8px;">
       <label>Imag start: <input id="imag-start" type="number" value="-1" step="any"></label>
       <label style="margin-left:4px;">Imag end: <input id="imag-end" type="number" value="1" step="any"></label>
+    </div>
+    <div style="margin-bottom:8px;">
+      <label><input type="checkbox" id="show-real" checked> Real part</label>
+      <label style="margin-left:4px;"><input type="checkbox" id="show-imag" checked> Imag part</label>
     </div>
     <div id="three-container" style="width:100%;height:400px;position:relative;"></div>
     <div id="d3-container" style="width:100%;height:300px;position:relative;margin-top:8px;"></div>
@@ -43,6 +43,7 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
   const plotBtn = appElement.querySelector<HTMLButtonElement>('#plot-btn')!;
   const realCheckbox = appElement.querySelector<HTMLInputElement>('#show-real')!;
   const imagCheckbox = appElement.querySelector<HTMLInputElement>('#show-imag')!;
+  const realRangeDiv = appElement.querySelector<HTMLDivElement>('#real-range')!;
   const imagRangeDiv = appElement.querySelector<HTMLDivElement>('#imag-range')!;
   const imagStartInput = appElement.querySelector<HTMLInputElement>('#imag-start')!;
   const imagEndInput = appElement.querySelector<HTMLInputElement>('#imag-end')!;
@@ -122,12 +123,21 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
     .attr('stroke', '#ff6347')
     .attr('fill', 'none');
 
+  function toggleRealRange(): void {
+    realRangeDiv.style.display = realCheckbox.checked ? 'block' : 'none';
+  }
+
   function toggleImagRange(): void {
     imagRangeDiv.style.display = imagCheckbox.checked ? 'block' : 'none';
   }
 
   function handleImagChange(): void {
     toggleImagRange();
+    draw();
+  }
+
+  function handleRealChange(): void {
+    toggleRealRange();
     draw();
   }
 
@@ -202,8 +212,9 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
   }
 
   plotBtn.addEventListener('click', draw);
-  realCheckbox.addEventListener('change', draw);
+  realCheckbox.addEventListener('change', handleRealChange);
   imagCheckbox.addEventListener('change', handleImagChange);
+  toggleRealRange();
   toggleImagRange();
   draw();
 
@@ -222,7 +233,7 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
 
   (appElement as HTMLElement & { cleanupThreeScene?: () => void }).cleanupThreeScene = () => {
     plotBtn.removeEventListener('click', draw);
-    realCheckbox.removeEventListener('change', draw);
+    realCheckbox.removeEventListener('change', handleRealChange);
     imagCheckbox.removeEventListener('change', handleImagChange);
     resizeObserver.disconnect();
     svg.remove();
