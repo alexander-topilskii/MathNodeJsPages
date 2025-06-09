@@ -14,6 +14,7 @@ export interface FormulaData {
   imagArgImagPositions?: Float32Array;
   imagArgRealPoints?: { x: number; y: number }[];
   imagArgImagPoints?: { x: number; y: number }[];
+  grid?: { x: number; y: number; re: number; im: number }[];
 }
 
 export function computeFormula(
@@ -57,6 +58,7 @@ export function computeFormula(
   let imagArgImagPositions: Float32Array | undefined;
   let imagArgRealPoints: { x: number; y: number }[] | undefined;
   let imagArgImagPoints: { x: number; y: number }[] | undefined;
+  let grid: { x: number; y: number; re: number; im: number }[] | undefined;
 
   if (
     typeof imagStart === 'number' &&
@@ -69,6 +71,7 @@ export function computeFormula(
     for (let y = imagStart; y <= imagEnd; y += stepImag) yValues.push(y);
     imagArgRealPositions = new Float32Array(yValues.length * 3);
     imagArgImagPositions = new Float32Array(yValues.length * 3);
+    grid = [];
     yValues.forEach((y, i) => {
       const arg = math.complex(0, y);
       const v = compiled.evaluate({ x: arg }) as number | Complex;
@@ -80,6 +83,13 @@ export function computeFormula(
       imagArgImagPositions![i * 3] = 0;
       imagArgImagPositions![i * 3 + 1] = im;
       imagArgImagPositions![i * 3 + 2] = y;
+      xValues.forEach(x => {
+        const z = math.complex(x, y);
+        const val = compiled.evaluate({ x: z }) as number | Complex;
+        const reVal = typeof val === 'number' ? val : (val.re as unknown as number) ?? 0;
+        const imVal = typeof val === 'number' ? 0 : (val.im as unknown as number) ?? 0;
+        grid!.push({ x, y, re: reVal, im: imVal });
+      });
     });
     imagArgRealPoints = yValues.map((y, i) => ({ x: y, y: imagArgRealPositions![i * 3 + 1] }));
     imagArgImagPoints = yValues.map((y, i) => ({ x: y, y: imagArgImagPositions![i * 3 + 1] }));
@@ -94,5 +104,6 @@ export function computeFormula(
     imagArgImagPositions,
     imagArgRealPoints,
     imagArgImagPoints,
+    grid,
   };
 }
