@@ -54,7 +54,10 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
   let controls: OrbitControls;
   const sceneInstance = setupThreeScene(threeContainer, {
     onInit: (scene, camera, renderer) => {
-      camera.position.set(0, 0, 10);
+      // Start the camera at an angle so the imaginary Z axis is visible.
+      // Looking straight down the Z axis hid the imaginary component,
+      // giving the impression that it wasn't being drawn.
+      camera.position.set(5, 5, 10);
       controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       scene.add(new THREE.AxesHelper(5));
