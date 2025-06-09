@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import * as d3 from 'd3';
 import { ComputeEngine } from '@cortex-js/compute-engine';
 import 'mathlive';
 import { create, all } from 'mathjs';
@@ -26,7 +27,8 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
       <label><input type="checkbox" id="show-real" checked> Real part</label>
       <label style="margin-left:4px;"><input type="checkbox" id="show-imag"> Imag part</label>
     </div>
-    <div id="plot-container" style="width:100%;height:400px;position:relative;"></div>
+    <div id="three-container" style="width:100%;height:400px;position:relative;"></div>
+    <div id="d3-container" style="width:100%;height:300px;position:relative;margin-top:8px;"></div>
   `;
 
   const ce = new ComputeEngine();
@@ -37,15 +39,20 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
   const plotBtn = appElement.querySelector<HTMLButtonElement>('#plot-btn')!;
   const realCheckbox = appElement.querySelector<HTMLInputElement>('#show-real')!;
   const imagCheckbox = appElement.querySelector<HTMLInputElement>('#show-imag')!;
-  const container = appElement.querySelector<HTMLDivElement>('#plot-container')!;
+  const threeContainer = appElement.querySelector<HTMLDivElement>('#three-container')!;
+  const d3Container = appElement.querySelector<HTMLDivElement>('#d3-container')!;
 
-  container.style.maxWidth = '100%';
-  container.style.maxHeight = '100%';
-  container.style.overflow = 'hidden';
-  addFullscreenToggle(container);
+  threeContainer.style.maxWidth = '100%';
+  threeContainer.style.maxHeight = '100%';
+  threeContainer.style.overflow = 'hidden';
+  d3Container.style.maxWidth = '100%';
+  d3Container.style.maxHeight = '100%';
+  d3Container.style.overflow = 'hidden';
+  addFullscreenToggle(threeContainer);
+  addFullscreenToggle(d3Container);
 
   let controls: OrbitControls;
-  const sceneInstance = setupThreeScene(container, {
+  const sceneInstance = setupThreeScene(threeContainer, {
     onInit: (scene, camera, renderer) => {
       camera.position.set(0, 0, 10);
       controls = new OrbitControls(camera, renderer.domElement);
@@ -67,6 +74,43 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
   let imagLine = new THREE.Line(new THREE.BufferGeometry(), imagMaterial);
   scene.add(realLine);
   scene.add(imagLine);
+
+  const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+  let width = d3Container.clientWidth - margin.left - margin.right;
+  let height = d3Container.clientHeight - margin.top - margin.bottom;
+
+  const svg = d3
+    .select(d3Container)
+    .append('svg')
+    .style('display', 'block')
+    .attr('width', d3Container.clientWidth)
+    .attr('height', d3Container.clientHeight);
+
+  const plotArea = svg
+    .append('g')
+    .attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const xScale = d3.scaleLinear().range([0, width]);
+  const yScale = d3.scaleLinear().range([height, 0]);
+
+  const xAxisGroup = plotArea
+    .append('g')
+    .attr('class', 'x-axis')
+    .attr('transform', `translate(0,${height})`);
+
+  const yAxisGroup = plotArea
+    .append('g')
+    .attr('class', 'y-axis');
+
+  const realPath = plotArea
+    .append('path')
+    .attr('stroke', '#4682b4')
+    .attr('fill', 'none');
+
+  const imagPath = plotArea
+    .append('path')
+    .attr('stroke', '#ff6347')
+    .attr('fill', 'none');
 
   function draw(): void {
     const domainStart = parseFloat(startInput.value);
@@ -99,6 +143,24 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
       imagPositions[i * 3 + 2] = im;
     });
 
+    const realPoints = xValues.map((x, i) => ({ x, y: realPositions[i * 3 + 1] }));
+    const imagPoints = xValues.map((x, i) => ({ x, y: imagPositions[i * 3 + 2] }));
+    const yValues = [
+      ...realPoints.map(p => p.y),
+      ...imagPoints.map(p => p.y),
+    ];
+    const yExtent = d3.extent(yValues) as [number, number];
+    xScale.domain([domainStart, domainEnd]);
+    yScale.domain(yExtent);
+    xAxisGroup.call(d3.axisBottom(xScale));
+    yAxisGroup.call(d3.axisLeft(yScale));
+    const lineGenerator = d3
+      .line<{ x: number; y: number }>()
+      .x(d => xScale(d.x))
+      .y(d => yScale(d.y));
+    realPath.attr('d', lineGenerator(realPoints));
+    imagPath.attr('d', lineGenerator(imagPoints));
+
     realLine.geometry.dispose();
     imagLine.geometry.dispose();
     realLine.geometry = new THREE.BufferGeometry();
@@ -109,6 +171,8 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
 
     realLine.visible = realCheckbox.checked;
     imagLine.visible = imagCheckbox.checked;
+    realPath.style('display', realCheckbox.checked ? 'inline' : 'none');
+    imagPath.style('display', imagCheckbox.checked ? 'inline' : 'none');
   }
 
   plotBtn.addEventListener('click', draw);
@@ -116,10 +180,25 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
   imagCheckbox.addEventListener('change', draw);
   draw();
 
+  const resizeObserver = new ResizeObserver(() => {
+    const rect = d3Container.getBoundingClientRect();
+    svg.attr('width', rect.width).attr('height', rect.height);
+    width = rect.width - margin.left - margin.right;
+    height = rect.height - margin.top - margin.bottom;
+    xScale.range([0, width]);
+    yScale.range([height, 0]);
+    xAxisGroup.attr('transform', `translate(0,${height})`).call(d3.axisBottom(xScale));
+    yAxisGroup.call(d3.axisLeft(yScale));
+    draw();
+  });
+  resizeObserver.observe(d3Container);
+
   (appElement as HTMLElement & { cleanupThreeScene?: () => void }).cleanupThreeScene = () => {
     plotBtn.removeEventListener('click', draw);
     realCheckbox.removeEventListener('change', draw);
     imagCheckbox.removeEventListener('change', draw);
+    resizeObserver.disconnect();
+    svg.remove();
     cleanup();
   };
 }
