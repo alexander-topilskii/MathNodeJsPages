@@ -34,13 +34,27 @@ export function computeFormula(
     throw new Error('Invalid formula');
   }
   const step = (domainEnd - domainStart) / steps;
-  const xValues: number[] = [];
-  for (let x = domainStart; x <= domainEnd; x += step) xValues.push(x);
+  const stepImag =
+    typeof imagStart === 'number' && typeof imagEnd === 'number'
+      ? (imagEnd - imagStart) / steps
+      : 0;
+  const xValues: [number, number][] = [];
+  if (stepImag === 0) {
+    for (let x = domainStart; x <= domainEnd; x += step) {
+      xValues.push([x, imagStart ?? 0]);
+    }
+  } else {
+    for (let x = domainStart; x <= domainEnd; x += step) {
+      for (let y = imagStart!; y <= imagEnd!; y += stepImag) {
+        xValues.push([x, y]);
+      }
+    }
+  }
 
   const realPositions = new Float32Array(xValues.length * 3);
   const imagPositions = new Float32Array(xValues.length * 3);
-  xValues.forEach((x, i) => {
-    const v = compiled.evaluate({ x }) as number | Complex;
+  xValues.forEach(([x, y], i) => {
+    const v = compiled.evaluate({ x: math.complex(x, y) }) as number | Complex;
     const re = typeof v === 'number' ? v : (v.re as unknown as number) ?? 0;
     const im = typeof v === 'number' ? 0 : (v.im as unknown as number) ?? 0;
     realPositions[i * 3] = x;
@@ -51,8 +65,8 @@ export function computeFormula(
     imagPositions[i * 3 + 2] = im;
   });
 
-  const realPoints = xValues.map((x, i) => ({ x, y: realPositions[i * 3 + 1] }));
-  const imagPoints = xValues.map((x, i) => ({ x, y: imagPositions[i * 3 + 2] }));
+  const realPoints = xValues.map(([x], i) => ({ x, y: realPositions[i * 3 + 1] }));
+  const imagPoints = xValues.map(([x], i) => ({ x, y: imagPositions[i * 3 + 2] }));
 
   let imagArgRealPositions: Float32Array | undefined;
   let imagArgImagPositions: Float32Array | undefined;
@@ -71,7 +85,6 @@ export function computeFormula(
     for (let y = imagStart; y <= imagEnd; y += stepImag) yValues.push(y);
     imagArgRealPositions = new Float32Array(yValues.length * 3);
     imagArgImagPositions = new Float32Array(yValues.length * 3);
-    grid = [];
     yValues.forEach((y, i) => {
       const arg = math.complex(0, y);
       const v = compiled.evaluate({ x: arg }) as number | Complex;
@@ -83,16 +96,15 @@ export function computeFormula(
       imagArgImagPositions![i * 3] = 0;
       imagArgImagPositions![i * 3 + 1] = im;
       imagArgImagPositions![i * 3 + 2] = y;
-      xValues.forEach(x => {
-        const z = math.complex(x, y);
-        const val = compiled.evaluate({ x: z }) as number | Complex;
-        const reVal = typeof val === 'number' ? val : (val.re as unknown as number) ?? 0;
-        const imVal = typeof val === 'number' ? 0 : (val.im as unknown as number) ?? 0;
-        grid!.push({ x, y, re: reVal, im: imVal });
-      });
     });
     imagArgRealPoints = yValues.map((y, i) => ({ x: y, y: imagArgRealPositions![i * 3 + 1] }));
     imagArgImagPoints = yValues.map((y, i) => ({ x: y, y: imagArgImagPositions![i * 3 + 1] }));
+    grid = xValues.map(([xVal, yVal], idx) => ({
+      x: xVal,
+      y: yVal,
+      re: realPositions[idx * 3 + 1],
+      im: imagPositions[idx * 3 + 2],
+    }));
   }
 
   return {
