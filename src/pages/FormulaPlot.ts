@@ -13,7 +13,7 @@ import { addFullscreenToggle } from '../utils/fullscreenToggle';
  * X axis represents the domain, Y is the real part and Z is the imaginary part.
  * The graph can be rotated with the mouse to inspect the imaginary component.
  */
-export function renderFormulaGraphPage(appElement: HTMLElement): void {
+export function renderFormulaPlot(appElement: HTMLElement): void {
   appElement.innerHTML = `
     <div style="margin-bottom:8px;">
       <label>Formula: <math-field id="formula-input">\\sin(x)</math-field></label>
