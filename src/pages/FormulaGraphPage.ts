@@ -27,6 +27,10 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
       <label><input type="checkbox" id="show-real" checked> Real part</label>
       <label style="margin-left:4px;"><input type="checkbox" id="show-imag"> Imag part</label>
     </div>
+    <div id="imag-range" style="display:none;margin-bottom:8px;">
+      <label>Imag start: <input id="imag-start" type="number" value="-1" step="any"></label>
+      <label style="margin-left:4px;">Imag end: <input id="imag-end" type="number" value="1" step="any"></label>
+    </div>
     <div id="three-container" style="width:100%;height:400px;position:relative;"></div>
     <div id="d3-container" style="width:100%;height:300px;position:relative;margin-top:8px;"></div>
   `;
@@ -39,6 +43,9 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
   const plotBtn = appElement.querySelector<HTMLButtonElement>('#plot-btn')!;
   const realCheckbox = appElement.querySelector<HTMLInputElement>('#show-real')!;
   const imagCheckbox = appElement.querySelector<HTMLInputElement>('#show-imag')!;
+  const imagRangeDiv = appElement.querySelector<HTMLDivElement>('#imag-range')!;
+  const imagStartInput = appElement.querySelector<HTMLInputElement>('#imag-start')!;
+  const imagEndInput = appElement.querySelector<HTMLInputElement>('#imag-end')!;
   const threeContainer = appElement.querySelector<HTMLDivElement>('#three-container')!;
   const d3Container = appElement.querySelector<HTMLDivElement>('#d3-container')!;
 
@@ -115,6 +122,15 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
     .attr('stroke', '#ff6347')
     .attr('fill', 'none');
 
+  function toggleImagRange(): void {
+    imagRangeDiv.style.display = imagCheckbox.checked ? 'block' : 'none';
+  }
+
+  function handleImagChange(): void {
+    toggleImagRange();
+    draw();
+  }
+
   function draw(): void {
     const domainStart = parseFloat(startInput.value);
     const domainEnd = parseFloat(endInput.value);
@@ -152,6 +168,13 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
       ...realPoints.map(p => p.y),
       ...imagPoints.map(p => p.y),
     ];
+    if (imagCheckbox.checked) {
+      const imStart = parseFloat(imagStartInput.value);
+      const imEnd = parseFloat(imagEndInput.value);
+      if (!Number.isNaN(imStart) && !Number.isNaN(imEnd)) {
+        yValues.push(imStart, imEnd);
+      }
+    }
     const yExtent = d3.extent(yValues) as [number, number];
     xScale.domain([domainStart, domainEnd]);
     yScale.domain(yExtent);
@@ -180,7 +203,8 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
 
   plotBtn.addEventListener('click', draw);
   realCheckbox.addEventListener('change', draw);
-  imagCheckbox.addEventListener('change', draw);
+  imagCheckbox.addEventListener('change', handleImagChange);
+  toggleImagRange();
   draw();
 
   const resizeObserver = new ResizeObserver(() => {
@@ -199,7 +223,7 @@ export function renderFormulaGraphPage(appElement: HTMLElement): void {
   (appElement as HTMLElement & { cleanupThreeScene?: () => void }).cleanupThreeScene = () => {
     plotBtn.removeEventListener('click', draw);
     realCheckbox.removeEventListener('change', draw);
-    imagCheckbox.removeEventListener('change', draw);
+    imagCheckbox.removeEventListener('change', handleImagChange);
     resizeObserver.disconnect();
     svg.remove();
     cleanup();
