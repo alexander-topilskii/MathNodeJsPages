@@ -183,6 +183,19 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
   outline: 4px auto var(--focus-ring-color);
 }
+.button {
+  display: inline-block;
+  text-decoration: none;
+  border-radius: var(--border-radius-medium);
+  border: 1px solid transparent;
+  padding: var(--padding-button-vertical) var(--padding-button-horizontal);
+  background-color: var(--button-bg-color);
+  color: var(--text-color);
+  transition: border-color var(--transition-duration-fast);
+}
+.button:hover {
+  border-color: var(--button-border-hover-color);
+}
 
 @media (prefers-color-scheme: light) {
   :root {
