@@ -1,30 +1,380 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hello math</title>
-  </head>
-  <body>
-    <div id="header">
-      <div id="version-info-banner"></div>
-      <h1 id="page-title">Hello math</h1>
-    </div>
-    <div id="app-layout">
-      <nav id="sidebar">
-        <ul>
-          <li><a href="/" data-navigo>Home</a></li>
-          <li><a href="/counter" data-navigo>Simple Counter</a></li>
-          <li><a href="/three_cube" data-navigo>Cube Demo</a></li>
-          <li><a href="/three_sphere" data-navigo>Sphere Demo</a></li>
-          <li><a href="/function_plot" data-navigo>Complex Plot Demo</a></li>
-          <li><a href="/formula_graph" data-navigo>Formula Grapher</a></li>
-          <li><a href="/riemann" data-navigo>Riemann Zeta Zeros</a></li>
-        </ul>
-      </nav>
-      <div id="content">Loading...</div>
-    </div>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            width: 90%;
+            background-color: #fff;
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+        }
+        h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        h4 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #007bff;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        .section-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .section-item {
+            margin-bottom: 20px;
+        }
+        .section-item a {
+            display: block;
+            padding: 15px 20px;
+            background-color: #e9f1ff;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #007bff;
+            font-weight: 500;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+        }
+        .section-item a:hover {
+            background-color: #d4e6ff;
+            transform: translateY(-2px);
+        }
+        .section-item strong {
+            display: block;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .resource-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .resource-item {
+            margin-bottom: 20px;
+            background-color: #e9f1ff;
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+        }
+        .resource-item summary {
+            font-weight: 500;
+            color: #2c3e50;
+            cursor: pointer;
+            outline: none;
+        }
+        .resource-item details[open] summary {
+            margin-bottom: 10px;
+        }
+        .resource-item iframe {
+            width: 100%;
+            height: 315px;
+            border: none;
+            border-radius: 8px;
+        }
+        .resource-item a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .resource-item a:hover {
+            color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        table th, table td {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            text-align: left;
+        }
+        table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .back-link a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        .back-link a:hover {
+            background-color: #5a6268;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+                width: 95%;
+            }
+            h3 {
+                font-size: 1.5rem;
+            }
+            h4 {
+                font-size: 1.2rem;
+            }
+            .section-item a {
+                padding: 12px 15px;
+            }
+            .section-item strong {
+                font-size: 1rem;
+            }
+            .resource-item {
+                padding: 12px 15px;
+            }
+            .resource-item iframe {
+                height: 200px;
+            }
+        }
+
+        /* Additional styles for sidebar navigation */
+        body {
+            display: flex;
+            justify-content: flex-start;
+            align-items: stretch;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: width 0.3s ease;
+        }
+        .sidebar.collapsed {
+            width: 60px;
+            padding: 20px 10px;
+        }
+        .sidebar.collapsed .nav-title,
+        .sidebar.collapsed .sub-nav-title,
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+        .toggle-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #007bff;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+        .main-nav details,
+        .sub-nav details {
+            margin-bottom: 20px;
+        }
+        .main-nav summary,
+        .sub-nav summary {
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .main-nav summary .icon,
+        .sub-nav summary .icon {
+            margin-right: 10px;
+        }
+        .main-nav ul,
+        .sub-nav ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .main-nav li,
+        .sub-nav li {
+            margin-bottom: 10px;
+        }
+        .main-nav a,
+        .sub-nav a {
+            color: #007bff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .main-nav a:hover,
+        .sub-nav a:hover {
+            background-color: #e9f1ff;
+        }
+        .main-nav a .icon,
+        .sub-nav a .icon {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar.collapsed .main-nav summary,
+        .sidebar.collapsed .sub-nav summary {
+            justify-content: center;
+        }
+        .sidebar.collapsed .main-nav summary .icon,
+        .sidebar.collapsed .sub-nav summary .icon {
+            margin-right: 0;
+        }
+        .sidebar.collapsed .main-nav a,
+        .sidebar.collapsed .sub-nav a {
+            justify-content: center;
+            padding: 10px 0;
+        }
+        .sidebar.collapsed .main-nav a .icon,
+        .sidebar.collapsed .sub-nav a .icon {
+            margin-right: 0;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 40px;
+            flex-grow: 1;
+            transition: margin-left 0.3s ease;
+        }
+        .content.expanded {
+            margin-left: 60px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+            .sidebar.collapsed {
+                width: 60px;
+                padding: 20px 10px;
+            }
+            .content {
+                margin-left: 200px;
+            }
+            .content.expanded {
+                margin-left: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar">
+        <button class="toggle-btn" id="toggle-sidebar">☰</button>
+        <div class="main-nav">
+            <details open>
+                <summary class="nav-title"><span class="icon">📁</span> Main Navigation</summary>
+                <ul>
+                    <li><a href="/" data-navigo><span class="icon">🏠</span> <span class="nav-text">Home</span></a></li>
+                    <li><a href="/counter" data-navigo><span class="icon">🔢</span> <span class="nav-text">Counter</span></a></li>
+                    <li><a href="/three_cube" data-navigo><span class="icon">🧊</span> <span class="nav-text">Cube Demo</span></a></li>
+                    <li><a href="/three_sphere" data-navigo><span class="icon">⚽</span> <span class="nav-text">Sphere Demo</span></a></li>
+                    <li><a href="/function_plot" data-navigo><span class="icon">📈</span> <span class="nav-text">Plot Demo</span></a></li>
+                    <li><a href="/formula_graph" data-navigo><span class="icon">📝</span> <span class="nav-text">Formula Grapher</span></a></li>
+                    <li><a href="/riemann" data-navigo><span class="icon">ζ</span> <span class="nav-text">Riemann Zeros</span></a></li>
+                </ul>
+            </details>
+        </div>
+        <div class="sub-nav">
+            <details>
+                <summary class="sub-nav-title"><span class="icon">📂</span> Sub Navigation</summary>
+                <ul>
+                    <li><a href="#section1"><span class="icon">📄</span> <span class="nav-text">Section 1</span></a></li>
+                    <li><a href="#section2"><span class="icon">📁</span> <span class="nav-text">Section 2</span></a></li>
+                    <li><a href="#section3"><span class="icon">📊</span> <span class="nav-text">Section 3</span></a></li>
+                    <li><a href="#section4"><span class="icon">⚙️</span> <span class="nav-text">Section 4</span></a></li>
+                </ul>
+            </details>
+        </div>
+    </aside>
+    <main class="content" id="content">
+        <div class="container">
+            <h3>Welcome to the Start Page</h3>
+            <p>This is the main content area. The left sidebar contains collapsible main navigation and sub-navigation with emojis as icons. When collapsed, only emojis are visible, and submenu items are hidden.</p>
+            <h4>Sections</h4>
+            <ul class="section-list">
+                <li class="section-item">
+                    <a href="#">
+                        <strong>Section Title</strong>
+                        Description of the section.
+                    </a>
+                </li>
+            </ul>
+            <h4>Resources</h4>
+            <ul class="resource-list">
+                <li class="resource-item">
+                    <details>
+                        <summary>Resource 1</summary>
+                        <p>Details about resource 1.</p>
+                        <a href="https://example.com">Link to resource</a>
+                    </details>
+                </li>
+            </ul>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Column 1</th>
+                        <th>Column 2</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Data 1</td>
+                        <td>Data 2</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="back-link">
+                <a href="#">Back to Top</a>
+            </div>
+        </div>
+    </main>
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const content = document.getElementById('content');
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            content.classList.toggle('expanded');
+            if (sidebar.classList.contains('collapsed')) {
+                document.querySelectorAll('.sidebar details').forEach(d => d.open = false);
+            }
+        });
+    </script>
     <script type="module" src="/src/main.ts"></script>
-  </body>
+</body>
 </html>
