@@ -5,11 +5,6 @@ import { renderCubeScene, renderSphereScene } from '../pages/ThreeExamples';
 import { renderComplexPlot } from '../pages/ComplexPlot';
 import { renderRiemannZerosScene } from '../pages/RiemannZeros';
 import { renderFormulaPlot } from '../pages/FormulaPlot';
-import { renderDashboardPage } from '../pages/Dashboard';
-import { renderCollectionPage } from '../pages/Collection';
-import { renderProfilePage } from '../pages/Profile';
-import { renderLoginPage } from '../pages/Login';
-import { renderRegisterPage } from '../pages/Register';
 const router = new Navigo('/'); // '/' это корневой URL
 
 export function setupRouter(): void {
@@ -45,21 +40,6 @@ export function setupRouter(): void {
     })
     .on('/three_sphere', () => {
       renderSphereScene(appElement);
-    })
-    .on('/dashboard', () => {
-      renderDashboardPage(appElement);
-    })
-    .on('/collection', () => {
-      renderCollectionPage(appElement);
-    })
-    .on('/profile', () => {
-      renderProfilePage(appElement);
-    })
-    .on('/login', () => {
-      renderLoginPage(appElement);
-    })
-    .on('/register', () => {
-      renderRegisterPage(appElement);
     })
     .on('/function_plot', () => {
       renderComplexPlot(appElement);
