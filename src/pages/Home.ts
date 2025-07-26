@@ -5,10 +5,8 @@
 export function renderHomePage(appElement: HTMLElement): void {
   appElement.innerHTML = `
     <div class="landing">
-      <h1>Wishlist: Создавай и делись желаниями легко</h1>
-      <p>Больше никаких ненужных подарков. Собирай свои желания на досках и делись ими с друзьями и семьей.</p>
-      <div class="illustration" style="margin: 20px 0;">[Иллюстрация с подарками]</div>
-      <div class="actions"></div>
+      <h1>Math sampler</h1>
+      <p>Some description</p>
     </div>
   `;
 }

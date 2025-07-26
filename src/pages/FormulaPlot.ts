@@ -6,7 +6,8 @@ import { createD3Plot } from './formulaPlot/d3Plot';
 /**
  * Page that lets the user input a formula and plots it in 3D using Three.js.
  * X axis represents the domain, Y is the real part and Z is the imaginary part.
- * The graph can be rotated with the mouse to inspect the imaginary component.
+ * The graph can be rotated with the mo
+ * use to inspect the imaginary component.
  */
 export function renderFormulaPlot(appElement: HTMLElement): void {
   appElement.innerHTML = `
