@@ -5,6 +5,7 @@ import { renderCubeScene, renderSphereScene } from '../pages/ThreeExamples';
 import { renderComplexPlot } from '../pages/ComplexPlot';
 import { renderRiemannZerosScene } from '../pages/RiemannZeros';
 import { renderFormulaPlot } from '../pages/FormulaPlot';
+import { renderUlamSpiralPage } from '../pages/UlamSpiral';
 const router = new Navigo('/'); // '/' это корневой URL
 
 export function setupRouter(): void {
@@ -46,6 +47,9 @@ export function setupRouter(): void {
     })
     .on('/formula_graph', () => {
       renderFormulaPlot(appElement);
+    })
+    .on('/ulam_spiral', () => {
+      renderUlamSpiralPage(appElement);
     })
     .on('/riemann', () => {
       renderRiemannZerosScene(appElement);
