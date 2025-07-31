@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 
-const SIZE = 200;
-const CELL_SIZE = 10;
+const SIZE = 200; // Spiral size (will generate up to SIZE * SIZE numbers)
+const CELL_SIZE = 10; // Initial cell size in pixels
 const PRIME_COLOR = 'black';
 const NON_PRIME_COLOR = 'white';
 const BACKGROUND_COLOR = 'lightgray';
@@ -62,24 +62,37 @@ function generateSpiral(n: number): Point[] {
 }
 
 export function renderUlamSpiralPage(appElement: HTMLElement): void {
-  appElement.innerHTML = '<div id="ulam-container" style="width:100%;height:100%;position:relative;"></div>';
+  appElement.innerHTML =
+    '<div id="ulam-container" style="width:100%;height:100%;position:relative;"></div>';
   const container = appElement.querySelector<HTMLDivElement>('#ulam-container')!;
   container.style.maxWidth = '100%';
   container.style.maxHeight = '100%';
   container.style.overflow = 'hidden';
 
   const points = generateSpiral(SIZE);
+
   const width = (Math.max(...points.map(p => p.x)) + 1) * CELL_SIZE;
   const height = (Math.max(...points.map(p => p.y)) + 1) * CELL_SIZE;
 
   const svg = d3
     .select(container)
     .append('svg')
-    .attr('width', width)
-    .attr('height', height)
+    .attr('width', container.clientWidth)
+    .attr('height', container.clientHeight)
     .style('background-color', BACKGROUND_COLOR);
 
   const g = svg.append('g');
+
+  const tooltip = d3
+    .select(container)
+    .append('div')
+    .style('position', 'absolute')
+    .style('background', 'rgba(0, 0, 0, 0.8)')
+    .style('color', 'white')
+    .style('padding', '5px')
+    .style('border-radius', '3px')
+    .style('pointer-events', 'none')
+    .style('opacity', 0);
 
   g.selectAll('rect')
     .data(points)
@@ -91,19 +104,67 @@ export function renderUlamSpiralPage(appElement: HTMLElement): void {
     .attr('height', CELL_SIZE)
     .attr('fill', d => (isPrime(d.value) ? PRIME_COLOR : NON_PRIME_COLOR))
     .attr('stroke', 'gray')
-    .attr('stroke-width', 0.1);
+    .attr('stroke-width', 0.1)
+    .on('mouseover', function (event, d) {
+      d3.select(this).attr('stroke', 'blue').attr('stroke-width', 1);
+      const rect = container.getBoundingClientRect();
+      tooltip
+        .style('opacity', 1)
+        .html(
+          `Number: ${d.value}<br>Prime: ${isPrime(d.value) ? 'Yes' : 'No'}<br>Coordinates: (${d.x}, ${d.y})`,
+        )
+        .style('left', `${event.clientX - rect.left + 10}px`)
+        .style('top', `${event.clientY - rect.top - 28}px`);
+    })
+    .on('mouseout', function () {
+      d3.select(this).attr('stroke', 'gray').attr('stroke-width', 0.1);
+      tooltip.style('opacity', 0);
+    });
+
+  const xScale = d3
+    .scaleLinear()
+    .domain([0, Math.max(...points.map(p => p.x))])
+    .range([0, width]);
+  const yScale = d3
+    .scaleLinear()
+    .domain([0, Math.max(...points.map(p => p.y))])
+    .range([0, height]);
+
+  const xAxis = d3.axisBottom(xScale).ticks(10);
+  const yAxis = d3.axisLeft(yScale).ticks(10);
+
+  g.append('g')
+    .attr('class', 'x-axis')
+    .attr('transform', `translate(0, ${height})`)
+    .call(xAxis);
+
+  g.append('g').attr('class', 'y-axis').call(yAxis);
 
   const zoom = d3
     .zoom<SVGSVGElement, unknown>()
     .scaleExtent([0.1, 10])
     .on('zoom', event => {
       g.attr('transform', event.transform as any);
+      g
+        .select('.x-axis')
+        .call(d3.axisBottom(event.transform.rescaleX(xScale)) as any);
+      g
+        .select('.y-axis')
+        .call(d3.axisLeft(event.transform.rescaleY(yScale)) as any);
     });
 
   svg.call(zoom as any);
-  svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2));
+
+  svg.call(
+    zoom.transform,
+    d3.zoomIdentity.translate(
+      container.clientWidth / 2 - width / 2,
+      container.clientHeight / 2 - height / 2,
+    ),
+  );
 
   (appElement as HTMLElement & { cleanupThreeScene?: () => void }).cleanupThreeScene = () => {
     svg.remove();
+    tooltip.remove();
   };
 }
